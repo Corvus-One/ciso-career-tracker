@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CISO Career Tracker · Kaizen v02.2</title>
+<title>CISO Career Tracker · Kaizen v02.5</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -138,7 +138,7 @@
   .ai-chat-dot { width:7px; height:7px; border-radius:50%; background:var(--accent3); animation:pulse 2s infinite; }
   .ai-chat-title { font-family:var(--mono); font-size:10px; color:var(--accent); letter-spacing:2px; flex:1; }
   .ai-chat-badge { font-family:var(--mono); font-size:9px; color:var(--muted); }
-  .ai-messages { height:180px; overflow-y:auto; padding:10px 12px; display:flex; flex-direction:column; gap:8px; }
+  .ai-messages { height:280px; overflow-y:auto; padding:10px 12px; display:flex; flex-direction:column; gap:8px; }
   .ai-msg { max-width:92%; padding:8px 11px; border-radius:10px; font-size:13px; line-height:1.5; }
   .ai-msg.assistant { background:rgba(124,106,247,0.1); border:1px solid rgba(124,106,247,0.15); color:var(--text); align-self:flex-start; border-radius:4px 10px 10px 10px; }
   .ai-msg.user { background:rgba(79,195,247,0.1); border:1px solid rgba(79,195,247,0.15); color:var(--text); align-self:flex-end; border-radius:10px 4px 10px 10px; }
@@ -346,6 +346,35 @@
   .setup-note { font-size: 12px; color: var(--muted); text-align: center; line-height: 1.5; }
   .setup-note span { color: var(--accent3); }
 
+
+  /* FILE UPLOAD IN CHAT */
+  .ai-attach-btn { background:transparent; border:1px solid var(--border); border-radius:7px; color:var(--muted); font-size:14px; padding:6px 9px; cursor:pointer; transition:all 0.2s; flex-shrink:0; }
+  .ai-attach-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .ai-file-preview { display:flex; align-items:center; gap:8px; padding:7px 10px; background:rgba(124,106,247,0.08); border:1px solid rgba(124,106,247,0.2); border-radius:8px; margin:6px 10px 0; }
+  .ai-file-preview-name { flex:1; font-size:11px; color:var(--accent2); font-family:var(--mono); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ai-file-remove { background:transparent; border:none; color:var(--muted); cursor:pointer; font-size:13px; padding:0 4px; }
+  .ai-file-remove:hover { color:var(--red); }
+  .ai-img-preview { max-width:100%; max-height:120px; border-radius:8px; margin:6px 10px 0; border:1px solid var(--border); }
+  #aiFileInput { display:none; }
+
+
+  /* ROADMAP EDIT MODAL */
+  .roadmap-edit-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(6px); z-index:300; align-items:center; justify-content:center; }
+  .roadmap-edit-modal.open { display:flex; }
+  .roadmap-edit-box { background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:26px; width:520px; max-width:90vw; max-height:85vh; overflow-y:auto; }
+  .roadmap-edit-title { font-family:var(--mono); font-size:12px; color:var(--accent); letter-spacing:2px; margin-bottom:18px; text-transform:uppercase; }
+  .roadmap-edit-item { background:var(--surface2); border-radius:10px; padding:14px; margin-bottom:10px; border:1px solid var(--border); }
+  .roadmap-edit-row { display:flex; gap:8px; margin-bottom:8px; align-items:center; }
+  .roadmap-edit-row:last-child { margin-bottom:0; }
+  .roadmap-edit-input { flex:1; background:var(--surface3); border:1px solid var(--border); border-radius:7px; padding:7px 10px; color:var(--text); font-family:var(--sans); font-size:13px; outline:none; }
+  .roadmap-edit-input:focus { border-color:var(--accent); }
+  .roadmap-status-select { background:var(--surface3); border:1px solid var(--border); border-radius:7px; padding:7px 10px; color:var(--text); font-family:var(--mono); font-size:11px; outline:none; cursor:pointer; }
+  .roadmap-progress-input { width:70px; background:var(--surface3); border:1px solid var(--border); border-radius:7px; padding:7px 10px; color:var(--text); font-family:var(--mono); font-size:12px; outline:none; text-align:center; }
+  .roadmap-edit-label { font-family:var(--mono); font-size:9px; color:var(--muted); letter-spacing:1px; min-width:55px; }
+  .roadmap-save-btn { width:100%; padding:12px; border-radius:9px; background:var(--accent); border:none; color:white; font-family:var(--mono); font-size:12px; letter-spacing:2px; cursor:pointer; transition:all 0.2s; margin-top:6px; }
+  .roadmap-save-btn:hover { background:#6b5de0; }
+  .roadmap-close-btn { float:right; background:var(--surface2); border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:5px 10px; cursor:pointer; font-size:12px; margin-bottom:4px; }
+
   ::-webkit-scrollbar { width:3px; }
   ::-webkit-scrollbar-track { background:var(--bg); }
   ::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
@@ -362,7 +391,7 @@
 <!-- HEADER -->
 
 <!-- SETUP SCREEN -->
-<div class="setup-overlay" id="setupOverlay">
+<div class="setup-overlay" id="setupOverlay" onclick="if(event.target===this)skipSetup()">
   <div class="setup-box">
     <div class="setup-logo">CAREER_TRACKER</div>
     <div class="setup-version">KAIZEN v02.5 · FIRST TIME SETUP</div>
@@ -388,10 +417,10 @@
     <input class="setup-input" id="setupKeyInput" placeholder="sk-or-v1-..." type="password">
     <div class="setup-error" id="setupError">⚠️ Please enter a valid OpenRouter key (starts with sk-or-v1-)</div>
     <button class="setup-btn" onclick="activateKey()">ACTIVATE AI COACH →</button>
+    <button onclick="skipSetup()" style="width:100%;padding:12px;border-radius:10px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:12px;letter-spacing:1px;cursor:pointer;margin-bottom:14px;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--accent2)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">SKIP — USE TRACKER WITHOUT AI COACH →</button>
     <div class="setup-note">
       <span>🔒 Your key never leaves your device.</span> It's saved in your browser's local storage only.<br>
-      You can skip this and use the tracker without the AI coach.
-      <br><a href="#" onclick="skipSetup()" style="color:var(--muted);font-size:11px">Skip for now →</a>
+      You can activate the AI coach anytime by clicking <strong style="color:var(--accent)">⚙️ key</strong> in the sidebar.
     </div>
   </div>
 </div>
@@ -399,7 +428,7 @@
 <header class="header">
   <div class="logo-block">
     <div class="logo">CAREER_TRACKER</div>
-    <div class="version-tag">KAIZEN v02.2</div>
+    <div class="version-tag">KAIZEN v02.5</div>
   </div>
   <div class="nav-pills">
     <button class="nav-btn active" onclick="switchView('daily',this)">DAILY</button>
@@ -464,7 +493,7 @@
 
     <!-- Roadmap -->
     <div>
-      <div class="sec-label">Roadmap</div>
+      <div class="sec-label" style="cursor:default">Roadmap <span style="margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--accent);cursor:pointer;letter-spacing:1px;" onclick="openRoadmapEdit()">✏️ EDIT</span></div>
       <div id="roadmapList"></div>
     </div>
 
@@ -486,7 +515,10 @@
         <div class="ai-messages" id="aiMessages">
           <div class="ai-msg assistant">👋 Hi! I'm your CISO career coach. Ask me anything about security frameworks, career strategy, habits, or your roadmap.</div>
         </div>
+        <div id="aiFilePreviewArea"></div>
         <div class="ai-input-row">
+          <input type="file" id="aiFileInput" accept="image/*,.pdf,.txt,.doc,.docx" onchange="handleFileAttach(this)">
+          <button class="ai-attach-btn" onclick="document.getElementById('aiFileInput').click()" title="Attach file or image">📎</button>
           <input class="ai-input" id="aiInput" placeholder="Ask anything..." onkeydown="if(event.key==='Enter')sendAiMessage()">
           <button class="ai-send-btn" id="aiSendBtn" onclick="sendAiMessage()">→</button>
         </div>
@@ -882,6 +914,102 @@ let currentQuoteIndex = 0;
 let aiConversation = [];
 
 
+
+// ===== FILE ATTACHMENT =====
+let attachedFile = null;
+let attachedFileData = null;
+
+function handleFileAttach(input) {
+  const file = input.files[0];
+  if(!file) return;
+  attachedFile = file;
+  const preview = document.getElementById('aiFilePreviewArea');
+  
+  if(file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      attachedFileData = e.target.result;
+      preview.innerHTML = `<img src="${e.target.result}" class="ai-img-preview"><div style="display:flex;align-items:center;gap:6px;padding:4px 10px;"><span style="font-family:var(--mono);font-size:10px;color:var(--accent2)">${file.name}</span><button class="ai-file-remove" onclick="clearAttachment()">✕</button></div>`;
+    };
+    reader.readAsDataURL(file);
+  } else {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      attachedFileData = e.target.result;
+      preview.innerHTML = `<div class="ai-file-preview"><span style="font-size:16px">${file.type.includes('pdf')?'📄':'📎'}</span><span class="ai-file-preview-name">${file.name}</span><button class="ai-file-remove" onclick="clearAttachment()">✕</button></div>`;
+    };
+    reader.readAsText(file);
+  }
+}
+
+function clearAttachment() {
+  attachedFile = null;
+  attachedFileData = null;
+  document.getElementById('aiFilePreviewArea').innerHTML = '';
+  document.getElementById('aiFileInput').value = '';
+}
+
+// ===== ROADMAP EDIT =====
+let ROADMAP_EDITABLE = JSON.parse(JSON.stringify(ROADMAP));
+
+function openRoadmapEdit() {
+  const el = document.getElementById('roadmapEditItems');
+  el.innerHTML = ROADMAP_EDITABLE.map((p,i) => `
+    <div class="roadmap-edit-item">
+      <div class="roadmap-edit-row">
+        <span class="roadmap-edit-label">PHASE</span>
+        <input class="roadmap-edit-input" id="rname_${i}" value="${p.name}" placeholder="Phase name">
+      </div>
+      <div class="roadmap-edit-row">
+        <span class="roadmap-edit-label">TIMELINE</span>
+        <input class="roadmap-edit-input" id="rtime_${i}" value="${p.time}" placeholder="e.g. Months 1-3">
+      </div>
+      <div class="roadmap-edit-row">
+        <span class="roadmap-edit-label">STATUS</span>
+        <select class="roadmap-status-select" id="rstatus_${i}">
+          <option value="done" ${p.status==='done'?'selected':''}>✅ Done</option>
+          <option value="current" ${p.status==='current'?'selected':''}>🔵 Current</option>
+          <option value="upcoming" ${p.status==='upcoming'?'selected':''}>⬜ Upcoming</option>
+        </select>
+        <span class="roadmap-edit-label" style="margin-left:10px">PROGRESS</span>
+        <input class="roadmap-progress-input" id="rprog_${i}" value="${p.progress}" type="number" min="0" max="100">
+        <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">%</span>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('roadmapEditModal').classList.add('open');
+}
+
+function saveRoadmap() {
+  ROADMAP_EDITABLE.forEach((p,i) => {
+    p.name = document.getElementById('rname_'+i).value;
+    p.time = document.getElementById('rtime_'+i).value;
+    p.status = document.getElementById('rstatus_'+i).value;
+    p.progress = parseInt(document.getElementById('rprog_'+i).value) || 0;
+  });
+  // Update ROADMAP array
+  ROADMAP_EDITABLE.forEach((p,i) => {
+    ROADMAP[i].name = p.name;
+    ROADMAP[i].time = p.time;
+    ROADMAP[i].status = p.status;
+    ROADMAP[i].progress = p.progress;
+  });
+  try { localStorage.setItem('roadmap_v22', JSON.stringify(ROADMAP)); } catch(e){}
+  document.getElementById('roadmapEditModal').classList.remove('open');
+  renderRoadmap();
+}
+
+function loadRoadmap() {
+  try {
+    const saved = localStorage.getItem('roadmap_v22');
+    if(saved) {
+      const data = JSON.parse(saved);
+      data.forEach((p,i) => { if(ROADMAP[i]) { ROADMAP[i].name=p.name; ROADMAP[i].time=p.time; ROADMAP[i].status=p.status; ROADMAP[i].progress=p.progress; }});
+      ROADMAP_EDITABLE = JSON.parse(JSON.stringify(ROADMAP));
+    }
+  } catch(e){}
+}
+
 // ===== SETUP SCREEN =====
 function checkSetup() {
   const key = localStorage.getItem('or_api_key');
@@ -912,6 +1040,10 @@ function activateKey() {
 
 function skipSetup() {
   document.getElementById('setupOverlay').style.display = 'none';
+  // Show a helpful hint in the AI chat
+  setTimeout(() => {
+    appendAiMessage('assistant', '👋 Welcome! The AI coach is not active yet. Click ⚙️ key in the AI Coach header anytime to add your OpenRouter key and activate it. Enjoy the tracker!');
+  }, 600);
 }
 
 function resetApiKey() {
@@ -922,6 +1054,7 @@ function resetApiKey() {
 // ===== INIT =====
 function init() {
   checkSetup();
+  loadRoadmap();
   document.getElementById('headerDate').textContent = new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
   document.getElementById('modalDate').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
   document.getElementById('weekLabel').textContent = getWeekLabel();
@@ -1262,8 +1395,22 @@ async function sendAiMessage() {
   btn.disabled = true;
 
   appendAiMessage('user', text);
-  aiConversation.push({role:'user', content: text});
+  aiConversation.push({role:'user', content: userContent});
   appendAiMessage('assistant', '...', true);
+
+  // Build message with file context if attached
+  let userContent = text;
+  if(attachedFile && attachedFileData) {
+    if(attachedFile.type.startsWith('image/')) {
+      userContent = [
+        {type:'image_url', image_url:{url: attachedFileData}},
+        {type:'text', text: text || 'Please analyze this image in the context of my CISO career journey.'}
+      ];
+    } else {
+      userContent = `[Attached file: ${attachedFile.name}]\n\nFile contents:\n${attachedFileData.substring(0,3000)}\n\n---\n\n${text}`;
+    }
+    clearAttachment();
+  }
 
   const systemPrompt = `You are an expert CISO career coach and cybersecurity advisor embedded in a career habit tracker. Your user is actively pursuing a CISO role within 18-24 months. They are neurodivergent and prefer clear, concise, step-by-step communication.
 
@@ -1333,5 +1480,16 @@ function removeThinking() {
 
 init();
 </script>
+
+<!-- ROADMAP EDIT MODAL -->
+<div class="roadmap-edit-modal" id="roadmapEditModal">
+  <div class="roadmap-edit-box">
+    <button class="roadmap-close-btn" onclick="document.getElementById('roadmapEditModal').classList.remove('open')">✕ Close</button>
+    <div class="roadmap-edit-title">// EDIT CAREER ROADMAP</div>
+    <div id="roadmapEditItems"></div>
+    <button class="roadmap-save-btn" onclick="saveRoadmap()">SAVE ROADMAP →</button>
+  </div>
+</div>
+
 </body>
 </html>
