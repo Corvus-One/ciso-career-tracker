@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CISO Career Tracker · Kaizen v02.5</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #12151c;
+    --surface2: #1a1e28;
+    --surface3: #222736;
+    --border: #272d3d;
+    --accent: #7c6af7;
+    --accent2: #4fc3f7;
+    --accent3: #69f0ae;
+    --accent4: #ff8a65;
+    --accent5: #f06292;
+    --red: #ff4757;
+    --red-soft: rgba(255,71,87,0.12);
+    --yellow: #ffd32a;
+    --yellow-soft: rgba(255,211,42,0.12);
+    --green: #2ed573;
+    --green-soft: rgba(46,213,115,0.12);
+    --text: #e2e8f0;
+    --muted: #5a6480;
+    --mono: 'Space Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+    --base: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: var(--base); }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; min-height: 100vh; overflow-x: hidden; line-height: 1.5; }
+  body::before {
+    content:''; position:fixed; inset:0;
+    background: radial-gradient(ellipse 80% 50% at 20% 0%, rgba(124,106,247,0.05) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 80% 100%, rgba(79,195,247,0.03) 0%, transparent 60%);
+    pointer-events:none; z-index:0;
+  }
+
+  /* HEADER */
+  .header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 28px; border-bottom:1px solid var(--border);
+    background:rgba(18,21,28,0.97); backdrop-filter:blur(16px);
+    position:sticky; top:0; z-index:100;
+  }
+  .logo-block { display:flex; align-items:center; gap:12px; }
+  .logo { font-family:var(--mono); font-size:13px; color:var(--accent); letter-spacing:3px; }
+  .version-tag { font-family:var(--mono); font-size:10px; padding:3px 9px; border-radius:20px; background:rgba(124,106,247,0.12); color:var(--accent); border:1px solid rgba(124,106,247,0.25); letter-spacing:2px; }
+  .nav-pills { display:flex; gap:6px; }
+  .nav-btn { padding:7px 15px; border-radius:8px; border:1px solid var(--border); background:transparent; color:var(--muted); font-family:var(--mono); font-size:11px; cursor:pointer; transition:all 0.2s; letter-spacing:1px; }
+  .nav-btn:hover,.nav-btn.active { background:var(--accent); color:white; border-color:var(--accent); }
+  .header-date { font-family:var(--mono); font-size:11px; color:var(--muted); }
+
+  /* MOTIVATIONAL BANNER */
+  .quote-banner {
+    background: linear-gradient(135deg, rgba(124,106,247,0.08) 0%, rgba(79,195,247,0.05) 50%, rgba(105,240,174,0.06) 100%);
+    border-bottom: 1px solid rgba(124,106,247,0.15);
+    padding: 12px 28px;
+    display: flex; align-items: center; gap: 16px;
+    position: relative; overflow: hidden;
+  }
+  .quote-banner::before {
+    content:''; position:absolute; left:0; top:0; bottom:0; width:3px;
+    background: linear-gradient(180deg, var(--accent), var(--accent2), var(--accent3));
+  }
+  .quote-icon { font-size:20px; flex-shrink:0; }
+  .quote-text { flex:1; font-size:14px; color:var(--text); font-style:italic; font-weight:400; line-height:1.5; }
+  .quote-author { font-family:var(--mono); font-size:11px; color:var(--accent2); flex-shrink:0; }
+  .quote-refresh { background:transparent; border:1px solid var(--border); border-radius:6px; color:var(--muted); font-size:11px; padding:4px 10px; cursor:pointer; transition:all 0.2s; font-family:var(--mono); flex-shrink:0; }
+  .quote-refresh:hover { border-color:var(--accent); color:var(--accent); }
+
+  /* LAYOUT */
+  .main { display:grid; grid-template-columns:270px 1fr; min-height:calc(100vh - 57px - 49px); }
+
+  /* SIDEBAR */
+  .sidebar { border-right:1px solid var(--border); padding:20px 16px; display:flex; flex-direction:column; gap:18px; background:var(--surface); overflow-y:auto; }
+  .sec-label { font-family:var(--mono); font-size:10px; letter-spacing:3px; color:var(--muted); text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+  .sec-label::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  /* MINI CALENDAR */
+  .mini-cal { background:var(--surface2); border-radius:12px; padding:12px; }
+  .cal-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .cal-nav-btn { background:transparent; border:none; color:var(--muted); cursor:pointer; font-size:14px; padding:2px 6px; border-radius:4px; transition:color 0.2s; }
+  .cal-nav-btn:hover { color:var(--text); }
+  .cal-month-label { font-family:var(--mono); font-size:11px; color:var(--text); letter-spacing:1px; }
+  .cal-grid-mini { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+  .cal-dl { font-family:var(--mono); font-size:9px; color:var(--muted); text-align:center; padding:3px 0; }
+  .cal-d { aspect-ratio:1; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:10px; cursor:pointer; transition:all 0.15s; position:relative; color:var(--muted); }
+  .cal-d:hover { background:var(--surface3); color:var(--text); }
+  .cal-d.today { background:rgba(124,106,247,0.2); color:var(--accent); font-weight:700; border:1px solid rgba(124,106,247,0.4); }
+  .cal-d.has-entry::after { content:''; position:absolute; bottom:2px; left:50%; transform:translateX(-50%); width:3px; height:3px; border-radius:50%; background:var(--accent3); }
+  .cal-d.empty { pointer-events:none; }
+
+  /* TOP 3 PRIORITIES */
+  .priority-list { display:flex; flex-direction:column; gap:8px; }
+  .priority-item { display:flex; align-items:center; gap:8px; padding:9px 10px; border-radius:10px; background:var(--surface2); border:1px solid var(--border); transition:all 0.2s; }
+  .priority-item:hover { border-color:var(--accent); }
+  .priority-rank { font-family:var(--mono); font-size:11px; color:var(--muted); min-width:16px; }
+  .priority-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; cursor:pointer; transition:all 0.2s; }
+  .priority-dot:hover { transform:scale(1.3); }
+  .priority-dot.red { background:var(--red); box-shadow:0 0 6px rgba(255,71,87,0.5); }
+  .priority-dot.yellow { background:var(--yellow); box-shadow:0 0 6px rgba(255,211,42,0.5); }
+  .priority-dot.green { background:var(--green); box-shadow:0 0 6px rgba(46,213,115,0.5); }
+  .priority-input { flex:1; background:transparent; border:none; color:var(--text); font-family:var(--sans); font-size:13px; outline:none; }
+  .priority-input::placeholder { color:var(--muted); font-size:12px; }
+
+  /* STREAK */
+  .streak-row { display:flex; gap:10px; }
+  .streak-card { flex:1; background:var(--surface2); border-radius:10px; padding:10px; text-align:center; }
+  .streak-num { font-family:var(--mono); font-size:26px; font-weight:700; line-height:1; }
+  .streak-lbl { font-size:11px; color:var(--muted); margin-top:3px; }
+
+  /* ROADMAP */
+  .roadmap-item { display:flex; align-items:flex-start; gap:8px; padding:8px 10px; border-radius:8px; border:1px solid transparent; cursor:pointer; transition:all 0.2s; }
+  .roadmap-item:hover { background:var(--surface2); }
+  .roadmap-item.active-phase { background:rgba(124,106,247,0.07); border-color:rgba(124,106,247,0.25); }
+  .phase-dot { width:9px; height:9px; border-radius:50%; margin-top:4px; flex-shrink:0; }
+  .phase-dot.done { background:var(--accent3); }
+  .phase-dot.current { background:var(--accent); animation:pulse 2s infinite; }
+  .phase-dot.upcoming { background:var(--border); }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+  .phase-name { font-size:13px; font-weight:600; color:var(--text); }
+  .phase-time { font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:2px; }
+  .phase-bar { height:2px; background:var(--border); border-radius:2px; margin-top:6px; overflow:hidden; }
+  .phase-fill { height:100%; border-radius:2px; }
+
+  /* QUICK NOTE */
+  .notes-area { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:12px; width:100%; min-height:70px; color:var(--text); font-family:var(--sans); font-size:13px; resize:vertical; outline:none; line-height:1.6; }
+  .notes-area:focus { border-color:var(--accent); }
+  .notes-area::placeholder { color:var(--muted); }
+
+  /* AI CHAT BOX */
+  .ai-chat-box { background:var(--surface2); border:1px solid rgba(124,106,247,0.25); border-radius:12px; overflow:hidden; }
+  .ai-chat-header { display:flex; align-items:center; gap:8px; padding:10px 12px; background:rgba(124,106,247,0.08); border-bottom:1px solid rgba(124,106,247,0.15); }
+  .ai-chat-dot { width:7px; height:7px; border-radius:50%; background:var(--accent3); animation:pulse 2s infinite; }
+  .ai-chat-title { font-family:var(--mono); font-size:10px; color:var(--accent); letter-spacing:2px; flex:1; }
+  .ai-chat-badge { font-family:var(--mono); font-size:9px; color:var(--muted); }
+  .ai-messages { height:280px; overflow-y:auto; padding:10px 12px; display:flex; flex-direction:column; gap:8px; }
+  .ai-msg { max-width:92%; padding:8px 11px; border-radius:10px; font-size:13px; line-height:1.5; }
+  .ai-msg.assistant { background:rgba(124,106,247,0.1); border:1px solid rgba(124,106,247,0.15); color:var(--text); align-self:flex-start; border-radius:4px 10px 10px 10px; }
+  .ai-msg.user { background:rgba(79,195,247,0.1); border:1px solid rgba(79,195,247,0.15); color:var(--text); align-self:flex-end; border-radius:10px 4px 10px 10px; }
+  .ai-msg.thinking { opacity:0.6; font-style:italic; color:var(--muted); }
+  .ai-input-row { display:flex; gap:6px; padding:8px 10px; border-top:1px solid var(--border); }
+  .ai-input { flex:1; background:var(--surface3); border:1px solid var(--border); border-radius:8px; padding:7px 10px; color:var(--text); font-family:var(--sans); font-size:13px; outline:none; transition:border-color 0.2s; }
+  .ai-input:focus { border-color:var(--accent); }
+  .ai-input::placeholder { color:var(--muted); font-size:12px; }
+  .ai-send-btn { padding:7px 12px; border-radius:8px; background:var(--accent); border:none; color:white; font-family:var(--mono); font-size:11px; cursor:pointer; transition:all 0.2s; flex-shrink:0; }
+  .ai-send-btn:hover { background:#6b5de0; }
+  .ai-send-btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+  /* CONTENT */
+  .content { padding:22px 28px; overflow-y:auto; display:flex; flex-direction:column; gap:20px; }
+  .view { display:none; flex-direction:column; gap:18px; }
+  .view.active { display:flex; }
+
+  /* CARDS */
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px; }
+  .card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:8px; }
+  .card-title { font-family:var(--mono); font-size:12px; letter-spacing:2px; color:var(--accent2); text-transform:uppercase; }
+  .card-badge { font-family:var(--mono); font-size:10px; padding:3px 9px; border-radius:20px; background:rgba(79,195,247,0.08); color:var(--accent2); border:1px solid rgba(79,195,247,0.15); }
+
+  /* STATS ROW */
+  .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; }
+  .stat-num { font-family:var(--mono); font-size:28px; font-weight:700; line-height:1; }
+  .stat-lbl { font-size:12px; color:var(--muted); margin-top:5px; }
+  .stat-sub { font-family:var(--mono); font-size:10px; margin-top:6px; }
+
+  /* HABIT LIST */
+  .habit-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); }
+  .habit-row:last-child { border-bottom:none; }
+  .habit-cat-tag { font-size:10px; font-family:var(--mono); padding:3px 8px; border-radius:20px; flex-shrink:0; }
+  .habit-name { flex:1; font-size:14px; color:var(--text); }
+  .habit-check { width:28px; height:28px; border-radius:7px; border:1.5px solid var(--border); background:transparent; cursor:pointer; transition:all 0.15s; font-size:12px; display:flex; align-items:center; justify-content:center; color:transparent; flex-shrink:0; }
+  .habit-check.checked { background:var(--accent3); border-color:var(--accent3); color:white; }
+  .habit-check:hover { border-color:var(--accent3); }
+
+  /* ADD HABIT FORM */
+  .add-habit-form { display:flex; gap:8px; flex-wrap:wrap; padding:12px; background:rgba(105,240,174,0.04); border:1px dashed rgba(105,240,174,0.2); border-radius:10px; margin-bottom:14px; align-items:flex-end; }
+  .fg { display:flex; flex-direction:column; gap:5px; flex:1; min-width:140px; }
+  .fl { font-family:var(--mono); font-size:10px; color:var(--muted); letter-spacing:1px; }
+  .fi { background:var(--surface2); border:1px solid var(--border); border-radius:7px; padding:8px 11px; color:var(--text); font-family:var(--sans); font-size:13px; outline:none; }
+  .fi:focus { border-color:var(--accent); }
+  .fs { background:var(--surface2); border:1px solid var(--border); border-radius:7px; padding:8px 11px; color:var(--text); font-family:var(--mono); font-size:11px; outline:none; cursor:pointer; }
+  .btn-add { padding:9px 18px; border-radius:8px; background:var(--accent3); border:none; color:#0a0c10; font-family:var(--mono); font-size:11px; font-weight:700; cursor:pointer; letter-spacing:1px; transition:all 0.2s; white-space:nowrap; }
+  .btn-add:hover { background:#52d99a; }
+  .btn-add-goal { background:var(--accent); color:white; }
+  .btn-add-goal:hover { background:#6b5de0; }
+  .btn-sm { padding:4px 10px; border-radius:5px; border:1px solid var(--border); background:transparent; color:var(--muted); font-family:var(--mono); font-size:10px; cursor:pointer; transition:all 0.2s; }
+  .btn-sm:hover { background:var(--surface3); color:var(--text); border-color:var(--accent); }
+
+  /* COLOR LEGEND */
+  .color-legend { display:flex; gap:14px; align-items:center; padding:7px 10px; background:var(--surface2); border-radius:8px; margin-bottom:10px; }
+  .legend-item { display:flex; align-items:center; gap:5px; }
+  .legend-dot { width:8px; height:8px; border-radius:50%; }
+  .legend-lbl { font-family:var(--mono); font-size:10px; color:var(--muted); }
+
+  /* WEEKLY GRID */
+  .wk-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); }
+  .wk-row:last-child { border-bottom:none; }
+  .wk-name { flex:1; font-size:13px; color:var(--text); }
+  .wk-checks { display:flex; gap:4px; }
+  .wk-check { width:26px; height:26px; border-radius:6px; border:1.5px solid var(--border); background:transparent; cursor:pointer; font-size:11px; display:flex; align-items:center; justify-content:center; color:transparent; transition:all 0.15s; }
+  .wk-check.checked { background:var(--accent3); border-color:var(--accent3); color:white; }
+  .wk-check:hover { border-color:var(--accent3); }
+  .wk-rate { font-family:var(--mono); font-size:11px; width:42px; text-align:right; }
+  .wk-del { background:transparent; border:none; color:var(--muted); cursor:pointer; font-size:13px; padding:2px 6px; border-radius:4px; opacity:0; transition:all 0.2s; }
+  .wk-row:hover .wk-del { opacity:1; }
+  .wk-del:hover { color:var(--red); }
+
+  /* GOALS */
+  .goal-item { padding:13px; background:var(--surface2); border-radius:10px; margin-bottom:8px; border-left:3px solid transparent; transition:all 0.2s; }
+  .goal-item.red { border-left-color:var(--red); background:rgba(255,71,87,0.04); }
+  .goal-item.yellow { border-left-color:var(--yellow); background:rgba(255,211,42,0.04); }
+  .goal-item.green { border-left-color:var(--green); background:rgba(46,213,115,0.04); }
+  .goal-top { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  .goal-text { font-size:13px; color:var(--text); font-weight:500; flex:1; }
+  .goal-pct { font-family:var(--mono); font-size:12px; }
+  .goal-bar { height:3px; background:var(--border); border-radius:2px; margin-top:8px; overflow:hidden; }
+  .goal-fill { height:100%; border-radius:2px; transition:width 0.5s; }
+  .goal-meta { display:flex; gap:8px; margin-top:7px; align-items:center; }
+  .goal-tag { font-family:var(--mono); font-size:10px; color:var(--muted); }
+  .goal-actions { margin-left:auto; display:flex; gap:5px; }
+  .color-cycle-btn { width:14px; height:14px; border-radius:50%; border:2px solid rgba(255,255,255,0.15); cursor:pointer; transition:transform 0.2s; flex-shrink:0; margin-top:2px; }
+  .color-cycle-btn:hover { transform:scale(1.3); }
+
+  /* IDEAS */
+  .ideas-tabs { display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
+  .idea-tab { padding:7px 14px; border-radius:8px; border:1px solid var(--border); background:transparent; color:var(--muted); font-family:var(--mono); font-size:11px; cursor:pointer; transition:all 0.2s; letter-spacing:1px; }
+  .idea-tab:hover { color:var(--text); border-color:var(--accent); }
+  .idea-tab.ondeck.active { background:rgba(46,213,115,0.15); border-color:var(--green); color:var(--green); }
+  .idea-tab.parking.active { background:rgba(255,211,42,0.12); border-color:var(--yellow); color:var(--yellow); }
+  .idea-tab.warehouse.active { background:rgba(124,106,247,0.12); border-color:var(--accent); color:var(--accent); }
+  .idea-panel { display:none; }
+  .idea-panel.active { display:block; }
+  .idea-zone-label { font-family:var(--mono); font-size:10px; letter-spacing:2px; color:var(--muted); margin-bottom:10px; padding:5px 10px; border-radius:6px; display:inline-block; }
+  .idea-zone-label.ondeck { background:var(--green-soft); color:var(--green); }
+  .idea-zone-label.parking { background:var(--yellow-soft); color:var(--yellow); }
+  .idea-zone-label.warehouse { background:rgba(124,106,247,0.1); color:var(--accent); }
+  .idea-add-row { display:flex; gap:8px; margin-bottom:12px; }
+  .idea-input { flex:1; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:9px 12px; color:var(--text); font-family:var(--sans); font-size:13px; outline:none; transition:border-color 0.2s; }
+  .idea-input:focus { border-color:var(--accent); }
+  .idea-add-btn { padding:9px 14px; border-radius:8px; border:1px solid var(--border); background:var(--surface2); color:var(--text); font-family:var(--mono); font-size:11px; cursor:pointer; transition:all 0.2s; }
+  .idea-add-btn:hover { background:var(--accent); border-color:var(--accent); color:white; }
+  .idea-list { display:flex; flex-direction:column; gap:6px; }
+  .idea-item { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--surface2); border-radius:10px; border:1px solid transparent; transition:all 0.2s; }
+  .idea-item:hover { border-color:var(--border); }
+  .idea-color-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; cursor:pointer; transition:transform 0.2s; }
+  .idea-color-dot:hover { transform:scale(1.4); }
+  .idea-color-dot.red { background:var(--red); box-shadow:0 0 5px rgba(255,71,87,0.5); }
+  .idea-color-dot.yellow { background:var(--yellow); box-shadow:0 0 5px rgba(255,211,42,0.5); }
+  .idea-color-dot.green { background:var(--green); box-shadow:0 0 5px rgba(46,213,115,0.5); }
+  .idea-text { flex:1; font-size:13px; color:var(--text); }
+  .idea-meta { font-family:var(--mono); font-size:10px; color:var(--muted); flex-shrink:0; }
+  .idea-actions { display:flex; gap:4px; opacity:0; transition:opacity 0.2s; }
+  .idea-item:hover .idea-actions { opacity:1; }
+  .idea-action-btn { background:transparent; border:1px solid var(--border); border-radius:5px; color:var(--muted); font-size:10px; font-family:var(--mono); padding:3px 8px; cursor:pointer; transition:all 0.15s; }
+  .idea-action-btn:hover { color:var(--text); border-color:var(--accent); }
+  .idea-action-btn.del:hover { border-color:var(--red); color:var(--red); }
+
+  /* CHARTS */
+  .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .mini-chart { background:var(--surface2); border-radius:10px; padding:14px; }
+  .mct { font-family:var(--mono); font-size:10px; color:var(--muted); letter-spacing:2px; margin-bottom:12px; text-transform:uppercase; }
+  .bar-chart { display:flex; align-items:flex-end; gap:5px; height:72px; }
+  .bar-col { display:flex; flex-direction:column; align-items:center; gap:3px; flex:1; }
+  .bar { border-radius:3px 3px 0 0; width:100%; min-height:2px; transition:height 0.5s; }
+  .bar-lbl { font-family:var(--mono); font-size:9px; color:var(--muted); }
+  .radial-row { display:flex; gap:12px; justify-content:center; }
+  .radial-item { display:flex; flex-direction:column; align-items:center; gap:5px; }
+  .radial-lbl { font-family:var(--mono); font-size:9px; color:var(--muted); text-align:center; }
+
+  /* HEATMAP */
+  .heatmap { display:grid; grid-template-columns:repeat(13,1fr); gap:3px; }
+  .heat-cell { aspect-ratio:1; border-radius:3px; }
+  .heat-0 { background:var(--surface2); border:1px solid var(--border); }
+  .heat-1 { background:rgba(124,106,247,0.2); }
+  .heat-2 { background:rgba(124,106,247,0.45); }
+  .heat-3 { background:rgba(124,106,247,0.7); }
+  .heat-4 { background:var(--accent); }
+
+  /* QUARTERLY */
+  .quarter-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .quarter-month { background:var(--surface2); border-radius:10px; padding:12px; }
+  .qm-name { font-family:var(--mono); font-size:11px; color:var(--accent2); letter-spacing:2px; margin-bottom:10px; }
+  .q-mini-cal { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+  .q-cell { aspect-ratio:1; border-radius:2px; background:var(--surface); font-size:8px; display:flex; align-items:center; justify-content:center; color:var(--muted); }
+  .q-cell.filled { background:rgba(124,106,247,0.3); color:var(--text); }
+  .q-cell.high { background:var(--accent); color:white; }
+  .q-stats { display:flex; justify-content:space-between; margin-top:8px; }
+  .q-stat { text-align:center; }
+  .q-stat-num { font-family:var(--mono); font-size:14px; font-weight:700; }
+  .q-stat-lbl { font-size:10px; color:var(--muted); margin-top:1px; }
+
+  /* MODAL */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(6px); z-index:200; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:24px; width:460px; max-width:90vw; max-height:90vh; overflow-y:auto; }
+  .modal-title { font-family:var(--mono); font-size:11px; color:var(--accent); letter-spacing:2px; margin-bottom:4px; }
+  .modal-date { font-size:18px; font-weight:700; color:var(--text); margin-bottom:18px; }
+  .modal-close { float:right; background:var(--surface2); border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:5px 10px; cursor:pointer; font-size:12px; }
+  .modal-close:hover { color:var(--red); border-color:var(--red); }
+  .mood-row { display:flex; gap:8px; margin-bottom:16px; }
+  .mood-btn { flex:1; padding:10px; border-radius:9px; border:1.5px solid var(--border); background:transparent; cursor:pointer; font-size:20px; transition:all 0.15s; }
+  .mood-btn:hover,.mood-btn.selected { background:rgba(124,106,247,0.12); border-color:var(--accent); }
+  .energy-slider { width:100%; accent-color:var(--accent); margin:6px 0 14px; }
+  .save-log-btn { width:100%; padding:12px; border-radius:9px; background:var(--accent); border:none; color:white; font-family:var(--mono); font-size:12px; letter-spacing:2px; cursor:pointer; transition:all 0.2s; }
+  .save-log-btn:hover { background:#6b5de0; }
+
+  /* ADD GOAL FORM */
+  .add-goal-form { display:flex; gap:8px; flex-wrap:wrap; padding:12px; background:rgba(124,106,247,0.04); border:1px dashed rgba(124,106,247,0.2); border-radius:10px; margin-bottom:14px; }
+
+
+  /* SETUP SCREEN */
+  .setup-overlay {
+    position: fixed; inset: 0; background: var(--bg); z-index: 999;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--sans);
+  }
+  .setup-box {
+    background: var(--surface); border: 1px solid rgba(124,106,247,0.3);
+    border-radius: 20px; padding: 40px; width: 520px; max-width: 90vw;
+    box-shadow: 0 0 60px rgba(124,106,247,0.1);
+  }
+  .setup-logo { font-family: var(--mono); font-size: 12px; color: var(--accent); letter-spacing: 3px; margin-bottom: 8px; }
+  .setup-version { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 2px; margin-bottom: 28px; }
+  .setup-title { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .setup-sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; line-height: 1.6; }
+  .setup-steps { display: flex; flex-direction: column; gap: 14px; margin-bottom: 28px; }
+  .setup-step { display: flex; gap: 14px; align-items: flex-start; padding: 14px; background: var(--surface2); border-radius: 12px; border: 1px solid var(--border); }
+  .setup-step-num { font-family: var(--mono); font-size: 11px; color: var(--accent); background: rgba(124,106,247,0.1); border: 1px solid rgba(124,106,247,0.2); border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: 700; }
+  .setup-step-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+  .setup-step-text a { color: var(--accent2); text-decoration: none; }
+  .setup-step-text a:hover { text-decoration: underline; }
+  .setup-step-text strong { color: var(--accent3); }
+  .setup-input-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 2px; margin-bottom: 8px; }
+  .setup-input { width: 100%; background: var(--surface2); border: 1px solid rgba(124,106,247,0.3); border-radius: 10px; padding: 12px 16px; color: var(--text); font-family: var(--mono); font-size: 13px; outline: none; transition: border-color 0.2s; margin-bottom: 10px; }
+  .setup-input:focus { border-color: var(--accent); }
+  .setup-input::placeholder { color: var(--muted); }
+  .setup-error { font-size: 12px; color: var(--red); margin-bottom: 10px; display: none; }
+  .setup-btn { width: 100%; padding: 14px; border-radius: 10px; background: var(--accent); border: none; color: white; font-family: var(--mono); font-size: 13px; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; margin-bottom: 14px; }
+  .setup-btn:hover { background: #6b5de0; }
+  .setup-note { font-size: 12px; color: var(--muted); text-align: center; line-height: 1.5; }
+  .setup-note span { color: var(--accent3); }
+
+
+  /* FILE UPLOAD IN CHAT */
+  .ai-attach-btn { background:transparent; border:1px solid var(--border); border-radius:7px; color:var(--muted); font-size:14px; padding:6px 9px; cursor:pointer; transition:all 0.2s; flex-shrink:0; }
+  .ai-attach-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .ai-file-preview { display:flex; align-items:center; gap:8px; padding:7px 10px; background:rgba(124,106,247,0.08); border:1px solid rgba(124,106,247,0.2); border-radius:8px; margin:6px 10px 0; }
+  .ai-file-preview-name { flex:1; font-size:11px; color:var(--accent2); font-family:var(--mono); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ai-file-remove { background:transparent; border:none; color:var(--muted); cursor:pointer; font-size:13px; padding:0 4px; }
+  .ai-file-remove:hover { color:var(--red); }
+  .ai-img-preview { max-width:100%; max-height:120px; border-radius:8px; margin:6px 10px 0; border:1px solid var(--border); }
+  #aiFileInput { display:none; }
+
+
+  /* ROADMAP EDIT MODAL */
+  .roadmap-edit-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(6px); z-index:300; align-items:center; justify-content:center; }
+  .roadmap-edit-modal.open { display:flex; }
+  .roadmap-edit-box { background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:26px; width:520px; max-width:90vw; max-height:85vh; overflow-y:auto; }
+  .roadmap-edit-title { font-family:var(--mono); font-size:12px; color:var(--accent); letter-spacing:2px; margin-bottom:18px; text-transform:uppercase; }
+  .roadmap-edit-item { background:var(--surface2); border-radius:10px; padding:14px; margin-bottom:10px; border:1px solid var(--border); }
+  .roadmap-edit-row { display:flex; gap:8px; margin-bottom:8px; align-items:center; }
+  .roadmap-edit-row:last-child { margin-bottom:0; }
+  .roadmap-edit-input { flex:1; background:var(--surface3); border:1px solid var(--border); border-radius:7px; padding:7px 10px; color:var(--text); font-family:var(--sans); font-size:13px; outline:none; }
+  .roadmap-edit-input:focus { border-color:var(--accent); }
+  .roadmap-status-select { background:var(--surface3); border:1px solid var(--border); border-radius:7px; padding:7px 10px; color:var(--text); font-family:var(--mono); font-size:11px; outline:none; cursor:pointer; }
+  .roadmap-progress-input { width:70px; background:var(--surface3); border:1px solid var(--border); border-radius:7px; padding:7px 10px; color:var(--text); font-family:var(--mono); font-size:12px; outline:none; text-align:center; }
+  .roadmap-edit-label { font-family:var(--mono); font-size:9px; color:var(--muted); letter-spacing:1px; min-width:55px; }
+  .roadmap-save-btn { width:100%; padding:12px; border-radius:9px; background:var(--accent); border:none; color:white; font-family:var(--mono); font-size:12px; letter-spacing:2px; cursor:pointer; transition:all 0.2s; margin-top:6px; }
+  .roadmap-save-btn:hover { background:#6b5de0; }
+  .roadmap-close-btn { float:right; background:var(--surface2); border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:5px 10px; cursor:pointer; font-size:12px; margin-bottom:4px; }
+
+  ::-webkit-scrollbar { width:3px; }
+  ::-webkit-scrollbar-track { background:var(--bg); }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+  @media(max-width:960px) {
+    .main { grid-template-columns:1fr; }
+    .charts-grid,.quarter-grid { grid-template-columns:1fr; }
+    .stats-row { grid-template-columns:1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+
+<!-- SETUP SCREEN -->
+<div class="setup-overlay" id="setupOverlay" onclick="if(event.target===this)skipSetup()">
+  <div class="setup-box">
+    <div class="setup-logo">CAREER_TRACKER</div>
+    <div class="setup-version">KAIZEN v02.5 · FIRST TIME SETUP</div>
+    <div class="setup-title">Welcome! Let's activate your AI Coach. 🤖</div>
+    <div class="setup-sub">Your AI coach needs a free OpenRouter API key to work. This takes 2 minutes and your key is stored only on <strong>your device</strong> — never on any server.</div>
+    
+    <div class="setup-steps">
+      <div class="setup-step">
+        <div class="setup-step-num">1</div>
+        <div class="setup-step-text">Go to <a href="https://openrouter.ai" target="_blank">openrouter.ai</a> and create a free account</div>
+      </div>
+      <div class="setup-step">
+        <div class="setup-step-num">2</div>
+        <div class="setup-step-text">Click your profile → <strong>Security</strong> → <strong>Create Key</strong> → copy it</div>
+      </div>
+      <div class="setup-step">
+        <div class="setup-step-num">3</div>
+        <div class="setup-step-text">Paste your key below and click <strong>Activate</strong></div>
+      </div>
+    </div>
+
+    <div class="setup-input-label">YOUR OPENROUTER API KEY</div>
+    <input class="setup-input" id="setupKeyInput" placeholder="sk-or-v1-..." type="password">
+    <div class="setup-error" id="setupError">⚠️ Please enter a valid OpenRouter key (starts with sk-or-v1-)</div>
+    <button class="setup-btn" onclick="activateKey()">ACTIVATE AI COACH →</button>
+    <button onclick="skipSetup()" style="width:100%;padding:12px;border-radius:10px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:12px;letter-spacing:1px;cursor:pointer;margin-bottom:14px;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--accent2)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">SKIP — USE TRACKER WITHOUT AI COACH →</button>
+    <div class="setup-note">
+      <span>🔒 Your key never leaves your device.</span> It's saved in your browser's local storage only.<br>
+      You can activate the AI coach anytime by clicking <strong style="color:var(--accent)">⚙️ key</strong> in the sidebar.
+    </div>
+  </div>
+</div>
+
+<header class="header">
+  <div class="logo-block">
+    <div class="logo">CAREER_TRACKER</div>
+    <div class="version-tag">KAIZEN v02.5</div>
+  </div>
+  <div class="nav-pills">
+    <button class="nav-btn active" onclick="switchView('daily',this)">DAILY</button>
+    <button class="nav-btn" onclick="switchView('weekly',this)">WEEKLY</button>
+    <button class="nav-btn" onclick="switchView('monthly',this)">MONTHLY</button>
+    <button class="nav-btn" onclick="switchView('quarterly',this)">QUARTERLY</button>
+    <button class="nav-btn" onclick="switchView('ideas',this)">IDEAS</button>
+  </div>
+  <div class="header-date" id="headerDate"></div>
+</header>
+
+<!-- MOTIVATIONAL QUOTE BANNER -->
+<div class="quote-banner">
+  <div class="quote-icon">💡</div>
+  <div class="quote-text" id="quoteText"></div>
+  <div class="quote-author" id="quoteAuthor"></div>
+  <button class="quote-refresh" onclick="nextQuote()" title="New quote">↻</button>
+</div>
+
+<div class="main">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- Mini Calendar -->
+    <div>
+      <div class="sec-label">Calendar</div>
+      <div class="mini-cal">
+        <div class="cal-nav">
+          <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
+          <div class="cal-month-label" id="calMonth"></div>
+          <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
+        </div>
+        <div class="cal-grid-mini" id="calGrid"></div>
+      </div>
+    </div>
+
+    <!-- Top 3 Priorities -->
+    <div>
+      <div class="sec-label">Top 3 Priorities</div>
+      <div class="color-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div><div class="legend-lbl">URGENT</div></div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div><div class="legend-lbl">SOON</div></div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><div class="legend-lbl">GOOD</div></div>
+      </div>
+      <div class="priority-list" id="priorityList"></div>
+    </div>
+
+    <!-- Streak -->
+    <div>
+      <div class="sec-label">Streak</div>
+      <div class="streak-row">
+        <div class="streak-card">
+          <div class="streak-num" style="color:var(--accent4)" id="streakNum">7</div>
+          <div class="streak-lbl">🔥 day streak</div>
+        </div>
+        <div class="streak-card">
+          <div class="streak-num" style="color:var(--accent2)">78%</div>
+          <div class="streak-lbl">📅 this week</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Roadmap -->
+    <div>
+      <div class="sec-label" style="cursor:default">Roadmap <span style="margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--accent);cursor:pointer;letter-spacing:1px;" onclick="openRoadmapEdit()">✏️ EDIT</span></div>
+      <div id="roadmapList"></div>
+    </div>
+
+    <!-- Quick Note -->
+    <div>
+      <div class="sec-label">Quick Note</div>
+      <textarea class="notes-area" id="quickNote" placeholder="Brain dump here..." rows="3"></textarea>
+    </div>
+
+    <!-- AI Assistant -->
+    <div>
+      <div class="sec-label">AI Coach</div>
+      <div class="ai-chat-box">
+        <div class="ai-chat-header">
+          <div class="ai-chat-dot"></div>
+          <div class="ai-chat-title">CISO ADVISOR</div>
+          <div class="ai-chat-badge" style="cursor:pointer" onclick="resetApiKey()" title="Change API key">⚙️ key</div>
+        </div>
+        <div class="ai-messages" id="aiMessages">
+          <div class="ai-msg assistant">👋 Hi! I'm your CISO career coach. Ask me anything about security frameworks, career strategy, habits, or your roadmap.</div>
+        </div>
+        <div id="aiFilePreviewArea"></div>
+        <div class="ai-input-row">
+          <input type="file" id="aiFileInput" accept="image/*,.pdf,.txt,.doc,.docx" onchange="handleFileAttach(this)">
+          <button class="ai-attach-btn" onclick="document.getElementById('aiFileInput').click()" title="Attach file or image">📎</button>
+          <input class="ai-input" id="aiInput" placeholder="Ask anything..." onkeydown="if(event.key==='Enter')sendAiMessage()">
+          <button class="ai-send-btn" id="aiSendBtn" onclick="sendAiMessage()">→</button>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="content">
+
+    <!-- DAILY VIEW -->
+    <div id="view-daily" class="view active">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-num" style="color:var(--accent3)" id="todayDone">0</div>
+          <div class="stat-lbl">Done Today</div>
+          <div class="stat-sub" style="color:var(--muted)">of <span id="todayTotal">0</span> habits</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" style="color:var(--accent)">78%</div>
+          <div class="stat-lbl">Week Rate</div>
+          <div class="stat-sub" style="color:var(--accent3)">↑ +12% vs last</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" style="color:var(--yellow)">3</div>
+          <div class="stat-lbl">Goals On Track</div>
+          <div class="stat-sub" style="color:var(--red)">1 needs attention</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" style="color:var(--accent2)">14mo</div>
+          <div class="stat-lbl">Est. to CISO</div>
+          <div class="stat-sub" style="color:var(--accent3)">On schedule ✓</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Today's Habits</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-sm" onclick="toggleAddHabit()" id="toggleHabitBtn">+ Add Habit</button>
+            <button class="btn-sm" onclick="document.getElementById('modalOverlay').classList.add('open')">📋 Log Day</button>
+          </div>
+        </div>
+        <div id="addHabitForm" style="display:none">
+          <div class="add-habit-form">
+            <div class="fg" style="flex:2">
+              <label class="fl">HABIT NAME</label>
+              <input class="fi" id="habitNameInput" placeholder="e.g. Read security blog 20 min...">
+            </div>
+            <div class="fg">
+              <label class="fl">CATEGORY</label>
+              <select class="fs" id="habitCatInput">
+                <option value="Technical">Technical</option>
+                <option value="Leadership">Leadership</option>
+                <option value="Learning">Learning</option>
+                <option value="Health">Health</option>
+                <option value="Career">Career</option>
+              </select>
+            </div>
+            <button class="btn-add" onclick="addHabit()">+ ADD</button>
+          </div>
+        </div>
+        <div id="habitList"></div>
+      </div>
+    </div>
+
+    <!-- WEEKLY VIEW -->
+    <div id="view-weekly" class="view">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Weekly Habit Grid</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div class="card-badge">Week of <span id="weekLabel"></span></div>
+            <button class="btn-sm" onclick="toggleAddHabitWeekly()">+ Add Habit</button>
+          </div>
+        </div>
+        <div id="addHabitWeeklyForm" style="display:none">
+          <div class="add-habit-form">
+            <div class="fg" style="flex:2">
+              <label class="fl">HABIT NAME</label>
+              <input class="fi" id="habitNameInputW" placeholder="New habit to track...">
+            </div>
+            <div class="fg">
+              <label class="fl">CATEGORY</label>
+              <select class="fs" id="habitCatInputW">
+                <option value="Technical">Technical</option>
+                <option value="Leadership">Leadership</option>
+                <option value="Learning">Learning</option>
+                <option value="Health">Health</option>
+                <option value="Career">Career</option>
+              </select>
+            </div>
+            <button class="btn-add" onclick="addHabitFromWeekly()">+ ADD</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;padding:0 0 6px 0;gap:8px;">
+          <div style="flex:1"></div>
+          <div style="display:flex;gap:4px;min-width:196px;">
+            <div style="width:26px;text-align:center;font-family:var(--mono);font-size:9px;color:var(--muted)">M</div>
+            <div style="width:26px;text-align:center;font-family:var(--mono);font-size:9px;color:var(--muted)">T</div>
+            <div style="width:26px;text-align:center;font-family:var(--mono);font-size:9px;color:var(--muted)">W</div>
+            <div style="width:26px;text-align:center;font-family:var(--mono);font-size:9px;color:var(--muted)">Th</div>
+            <div style="width:26px;text-align:center;font-family:var(--mono);font-size:9px;color:var(--muted)">F</div>
+            <div style="width:26px;text-align:center;font-family:var(--mono);font-size:9px;color:var(--muted)">Sa</div>
+            <div style="width:26px;text-align:center;font-family:var(--mono);font-size:9px;color:var(--muted)">Su</div>
+          </div>
+          <div style="width:42px;text-align:right;font-family:var(--mono);font-size:9px;color:var(--muted)">RATE</div>
+          <div style="width:28px"></div>
+        </div>
+        <div id="weeklyGrid"></div>
+      </div>
+      <div class="charts-grid">
+        <div class="card">
+          <div class="card-header"><div class="card-title">8-Week Trend</div></div>
+          <div class="mini-chart">
+            <div class="mct">// COMPLETION %</div>
+            <div class="bar-chart" id="weeklyBarChart"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Category Balance</div></div>
+          <div class="mini-chart">
+            <div class="mct">// THIS WEEK</div>
+            <div class="radial-row" id="radialChart"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MONTHLY VIEW -->
+    <div id="view-monthly" class="view">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Monthly Goals</div>
+          <button class="btn-sm" onclick="toggleAddGoal()">+ Add Goal</button>
+        </div>
+        <div id="addGoalForm" style="display:none">
+          <div class="add-goal-form">
+            <div class="fg" style="flex:2">
+              <label class="fl">GOAL</label>
+              <input class="fi" id="goalInput" placeholder="Describe your goal...">
+            </div>
+            <div class="fg">
+              <label class="fl">CATEGORY</label>
+              <select class="fs" id="goalCat">
+                <option>Technical</option><option>Leadership</option><option>Learning</option><option>Health</option><option>Career</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label class="fl">PRIORITY</label>
+              <select class="fs" id="goalColor">
+                <option value="red">🔴 Urgent</option>
+                <option value="yellow">🟡 Soon</option>
+                <option value="green">🟢 Good</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label class="fl">TIMELINE</label>
+              <select class="fs" id="goalTimeline">
+                <option>Monthly</option><option>Weekly</option><option>Quarterly</option>
+              </select>
+            </div>
+            <button class="btn-add btn-add-goal" onclick="addGoal()">+ ADD</button>
+          </div>
+        </div>
+        <div id="goalsList"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Activity Heatmap</div><div class="card-badge">LAST 3 MONTHS</div></div>
+        <div class="heatmap" id="heatmap"></div>
+        <div style="display:flex;align-items:center;gap:5px;margin-top:10px;">
+          <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">LESS</span>
+          <div class="heat-cell heat-0" style="width:13px;height:13px"></div>
+          <div class="heat-cell heat-1" style="width:13px;height:13px"></div>
+          <div class="heat-cell heat-2" style="width:13px;height:13px"></div>
+          <div class="heat-cell heat-3" style="width:13px;height:13px"></div>
+          <div class="heat-cell heat-4" style="width:13px;height:13px"></div>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">MORE</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Monthly Reflection</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div><div class="fl" style="margin-bottom:5px">WINS THIS MONTH</div><textarea class="notes-area" placeholder="What went well?" rows="4"></textarea></div>
+          <div><div class="fl" style="margin-bottom:5px">NEXT MONTH FOCUS</div><textarea class="notes-area" placeholder="What will you improve?" rows="4"></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUARTERLY VIEW -->
+    <div id="view-quarterly" class="view">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Quarterly Overview · Q<span id="currentQ"></span></div>
+          <div class="card-badge">CISO JOURNEY</div>
+        </div>
+        <div class="quarter-grid" id="quarterGrid"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Quarterly Goals</div></div>
+        <div id="quarterlyGoals"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Year Heatmap</div></div>
+        <div class="heatmap" id="yearHeatmap"></div>
+      </div>
+    </div>
+
+    <!-- IDEAS VIEW -->
+    <div id="view-ideas" class="view">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Ideas & Backlog System</div>
+          <div class="card-badge">KAIZEN CAPTURE</div>
+        </div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">Capture every idea without cluttering your focus. Move items forward as they get closer to action. Click any colored dot to change priority.</p>
+        <div class="ideas-tabs">
+          <button class="idea-tab ondeck active" onclick="switchIdea('ondeck',this)">🚀 ON DECK</button>
+          <button class="idea-tab parking" onclick="switchIdea('parking',this)">🅿️ PARKING LOT</button>
+          <button class="idea-tab warehouse" onclick="switchIdea('warehouse',this)">🏭 WAREHOUSE</button>
+        </div>
+        <div class="idea-panel active" id="panel-ondeck">
+          <div class="idea-zone-label ondeck">// NEXT 7 DAYS — Ready to act on</div>
+          <div class="idea-add-row">
+            <input class="idea-input" id="input-ondeck" placeholder="Add an idea or task for this week...">
+            <button class="idea-add-btn" onclick="addIdea('ondeck')">+ Add</button>
+          </div>
+          <div class="idea-list" id="list-ondeck"></div>
+        </div>
+        <div class="idea-panel" id="panel-parking">
+          <div class="idea-zone-label parking">// 30–90 DAYS OUT — On the horizon</div>
+          <div class="idea-add-row">
+            <input class="idea-input" id="input-parking" placeholder="Add an idea for next month or quarter...">
+            <button class="idea-add-btn" onclick="addIdea('parking')">+ Add</button>
+          </div>
+          <div class="idea-list" id="list-parking"></div>
+        </div>
+        <div class="idea-panel" id="panel-warehouse">
+          <div class="idea-zone-label warehouse">// 6+ MONTHS OUT — Long-term storage</div>
+          <div class="idea-add-row">
+            <input class="idea-input" id="input-warehouse" placeholder="Add a long-term idea or vision...">
+            <button class="idea-add-btn" onclick="addIdea('warehouse')">+ Add</button>
+          </div>
+          <div class="idea-list" id="list-warehouse"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- DAILY LOG MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="document.getElementById('modalOverlay').classList.remove('open')">✕ Close</button>
+    <div class="modal-title">// DAILY LOG</div>
+    <div class="modal-date" id="modalDate"></div>
+    <div class="fl" style="margin-bottom:8px">HOW ARE YOU FEELING?</div>
+    <div class="mood-row">
+      <button class="mood-btn" onclick="selectMood(this)">😴</button>
+      <button class="mood-btn" onclick="selectMood(this)">😐</button>
+      <button class="mood-btn" onclick="selectMood(this)">😊</button>
+      <button class="mood-btn" onclick="selectMood(this)">🚀</button>
+      <button class="mood-btn" onclick="selectMood(this)">⚡</button>
+    </div>
+    <div class="fl">ENERGY LEVEL</div>
+    <input type="range" class="energy-slider" id="energySlider" min="1" max="10" value="7">
+    <div style="display:flex;justify-content:space-between;margin-bottom:14px;">
+      <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">DRAINED</span>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--accent)" id="energyVal">7 / 10</span>
+      <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">ENERGIZED</span>
+    </div>
+    <div class="fl" style="margin-bottom:8px">BIGGEST WIN TODAY</div>
+    <input class="fi" id="dayWin" placeholder="One thing that moved the needle..." style="width:100%;margin-bottom:14px">
+    <div class="fl" style="margin-bottom:8px">NOTES / BRAIN DUMP</div>
+    <textarea class="notes-area" id="dayNotes" placeholder="Thoughts, blockers, ideas..." rows="3" style="margin-bottom:16px"></textarea>
+    <button class="save-log-btn" onclick="saveLog()">SAVE TODAY'S LOG →</button>
+  </div>
+</div>
+
+<script>
+// ===== 50 MOTIVATIONAL QUOTES =====
+const QUOTES = [
+  {text:"The secret of getting ahead is getting started.",author:"— Mark Twain"},
+  {text:"Security is not a product, but a process.",author:"— Bruce Schneier"},
+  {text:"Small daily improvements are the key to staggering long-term results.",author:"— Robin Sharma"},
+  {text:"The best time to plant a tree was 20 years ago. The second best time is now.",author:"— Chinese Proverb"},
+  {text:"A CISO's greatest asset is not their technical skill, but their ability to communicate risk.",author:"— Security Leadership"},
+  {text:"It does not matter how slowly you go as long as you do not stop.",author:"— Confucius"},
+  {text:"Kaizen: Change for the better, every single day.",author:"— Japanese Philosophy"},
+  {text:"The only way to do great work is to love what you do.",author:"— Steve Jobs"},
+  {text:"Cybersecurity is much more than a matter of IT.",author:"— Stéphane Nappo"},
+  {text:"Discipline is the bridge between goals and accomplishment.",author:"— Jim Rohn"},
+  {text:"In the middle of every difficulty lies opportunity.",author:"— Albert Einstein"},
+  {text:"The chains of habit are too light to be felt until they are too heavy to be broken.",author:"— Warren Buffett"},
+  {text:"Risk comes from not knowing what you're doing.",author:"— Warren Buffett"},
+  {text:"Success is the sum of small efforts repeated day in and day out.",author:"— Robert Collier"},
+  {text:"The future belongs to those who prepare for it today.",author:"— Malcolm X"},
+  {text:"We are what we repeatedly do. Excellence is not an act but a habit.",author:"— Aristotle"},
+  {text:"The greatest threat to our information security is complacency.",author:"— Unknown"},
+  {text:"You don't have to be great to start, but you have to start to be great.",author:"— Zig Ziglar"},
+  {text:"An investment in knowledge pays the best interest.",author:"— Benjamin Franklin"},
+  {text:"The best defense is a good offense — know your adversary.",author:"— Sun Tzu (adapted)"},
+  {text:"Don't watch the clock; do what it does. Keep going.",author:"— Sam Levenson"},
+  {text:"Knowledge is power. Guarded knowledge is competitive advantage.",author:"— Security Maxim"},
+  {text:"Continuous improvement is better than delayed perfection.",author:"— Mark Twain"},
+  {text:"The measure of intelligence is the ability to change.",author:"— Albert Einstein"},
+  {text:"Security without awareness is just theater.",author:"— Security Community"},
+  {text:"Believe you can and you're halfway there.",author:"— Theodore Roosevelt"},
+  {text:"The hardest part of any important task is getting started.",author:"— Brian Tracy"},
+  {text:"Mastery is not a function of genius or talent. It is a function of time and intense focus.",author:"— Robert Greene"},
+  {text:"Every expert was once a beginner.",author:"— Helen Hayes"},
+  {text:"A good plan violently executed now is better than a perfect plan next week.",author:"— George Patton"},
+  {text:"The more that you read, the more things you will know.",author:"— Dr. Seuss"},
+  {text:"You are never too old to set another goal or to dream a new dream.",author:"— C.S. Lewis"},
+  {text:"Leadership is not about being in charge. It's about taking care of those in your charge.",author:"— Simon Sinek"},
+  {text:"Resilience is knowing that you are the only one that has the power to pick yourself up.",author:"— Mary Holloway"},
+  {text:"The secret to change is to focus all of your energy not on fighting the old, but on building the new.",author:"— Socrates"},
+  {text:"Amateurs hack systems. Professionals hack people.",author:"— Bruce Schneier"},
+  {text:"Champions aren't made in gyms. Champions are made from something deep inside them.",author:"— Muhammad Ali"},
+  {text:"A year from now you will wish you had started today.",author:"— Karen Lamb"},
+  {text:"The only limit to our realization of tomorrow will be our doubts of today.",author:"— Franklin D. Roosevelt"},
+  {text:"Start where you are. Use what you have. Do what you can.",author:"— Arthur Ashe"},
+  {text:"The goal is not to be perfect by the end. The goal is to be better today.",author:"— Simon Sinek"},
+  {text:"One person with a commitment is worth more than a hundred with an interest.",author:"— Mary Crowley"},
+  {text:"Everything you want is on the other side of fear.",author:"— Jack Canfield"},
+  {text:"Winning is not everything, but wanting to win is.",author:"— Vince Lombardi"},
+  {text:"The difference between ordinary and extraordinary is that little extra.",author:"— Jimmy Johnson"},
+  {text:"In cybersecurity, the question is not if you will be attacked, but when.",author:"— Industry Wisdom"},
+  {text:"Fall seven times, stand up eight.",author:"— Japanese Proverb"},
+  {text:"Your focus determines your reality.",author:"— Qui-Gon Jinn"},
+  {text:"The strength of an organization is measured by how quickly it recovers from failure.",author:"— Unknown"},
+  {text:"Do something today that your future self will thank you for.",author:"— Sean Patrick Flanery"},
+];
+
+// ===== DATA =====
+let HABITS = [
+  {id:1,name:"Review security framework docs (30 min)",cat:"Technical",color:"var(--accent2)"},
+  {id:2,name:"Work on security application code",cat:"Technical",color:"var(--accent2)"},
+  {id:3,name:"Read CISO leadership article/book",cat:"Learning",color:"var(--accent4)"},
+  {id:4,name:"Update LinkedIn / professional network",cat:"Career",color:"var(--accent)"},
+  {id:5,name:"Exercise / movement break",cat:"Health",color:"var(--accent5)"},
+  {id:6,name:"Review compliance standards notes",cat:"Learning",color:"var(--accent4)"},
+  {id:7,name:"Reflect & journal (5 min)",cat:"Health",color:"var(--accent5)"},
+  {id:8,name:"Plan tomorrow's priorities",cat:"Leadership",color:"var(--accent3)"},
+];
+
+const CAT_COLORS = {Technical:"var(--accent2)",Leadership:"var(--accent3)",Learning:"var(--accent4)",Health:"var(--accent5)",Career:"var(--accent)"};
+
+const ROADMAP = [
+  {name:"Foundation Building",time:"Months 1–3",color:"var(--accent3)",status:"done",progress:100},
+  {name:"Technical Mastery",time:"Months 4–8",color:"var(--accent)",status:"current",progress:62},
+  {name:"Leadership Skills",time:"Months 9–12",color:"var(--accent2)",status:"upcoming",progress:0},
+  {name:"CISO Positioning",time:"Months 13–18",color:"var(--accent4)",status:"upcoming",progress:0},
+  {name:"Target Role Secured",time:"Month 18–24",color:"var(--accent5)",status:"upcoming",progress:0},
+];
+
+let goalsList = [
+  {id:1,text:"Complete NIST CSF Security Framework Application",cat:"Technical",color:"red",timeline:"Monthly",progress:68},
+  {id:2,text:"Build ISO 27001 compliance module",cat:"Technical",color:"red",timeline:"Monthly",progress:35},
+  {id:3,text:"Complete 10 CISO leadership case studies",cat:"Leadership",color:"yellow",timeline:"Quarterly",progress:50},
+  {id:4,text:"Establish 5 new security professional connections",cat:"Career",color:"green",timeline:"Monthly",progress:80},
+  {id:5,text:"Daily exercise streak — 30 days",cat:"Health",color:"green",timeline:"Monthly",progress:23},
+];
+
+let priorities = [
+  {id:1,text:"Complete NIST CSF gap analysis for Agency Alpha",color:"red"},
+  {id:2,text:"Finish React security dashboard component",color:"yellow"},
+  {id:3,text:"Review ISO 27001 Annex A controls",color:"green"},
+];
+
+let ideas = {
+  ondeck:[
+    {id:1,text:"Add dark mode toggle to security app",color:"green",date:"Mar 6"},
+    {id:2,text:"Draft board-level risk report template",color:"red",date:"Mar 6"},
+  ],
+  parking:[
+    {id:3,text:"Build CMMC compliance checker module",color:"yellow",date:"Mar 1"},
+    {id:4,text:"Create Agency Beta fictional scenario",color:"green",date:"Feb 28"},
+  ],
+  warehouse:[
+    {id:5,text:"Publish CISO portfolio as case study blog",color:"yellow",date:"Feb 15"},
+    {id:6,text:"Build AI-assisted risk scoring engine",color:"green",date:"Feb 10"},
+  ]
+};
+
+let habitChecks = {};
+let calViewDate = new Date();
+let streak = 7;
+let idCounter = 200;
+let currentQuoteIndex = 0;
+let aiConversation = [];
+
+
+
+// ===== FILE ATTACHMENT =====
+let attachedFile = null;
+let attachedFileData = null;
+
+function handleFileAttach(input) {
+  const file = input.files[0];
+  if(!file) return;
+  attachedFile = file;
+  const preview = document.getElementById('aiFilePreviewArea');
+  
+  if(file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      attachedFileData = e.target.result;
+      preview.innerHTML = `<img src="${e.target.result}" class="ai-img-preview"><div style="display:flex;align-items:center;gap:6px;padding:4px 10px;"><span style="font-family:var(--mono);font-size:10px;color:var(--accent2)">${file.name}</span><button class="ai-file-remove" onclick="clearAttachment()">✕</button></div>`;
+    };
+    reader.readAsDataURL(file);
+  } else {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      attachedFileData = e.target.result;
+      preview.innerHTML = `<div class="ai-file-preview"><span style="font-size:16px">${file.type.includes('pdf')?'📄':'📎'}</span><span class="ai-file-preview-name">${file.name}</span><button class="ai-file-remove" onclick="clearAttachment()">✕</button></div>`;
+    };
+    reader.readAsText(file);
+  }
+}
+
+function clearAttachment() {
+  attachedFile = null;
+  attachedFileData = null;
+  document.getElementById('aiFilePreviewArea').innerHTML = '';
+  document.getElementById('aiFileInput').value = '';
+}
+
+// ===== ROADMAP EDIT =====
+let ROADMAP_EDITABLE = JSON.parse(JSON.stringify(ROADMAP));
+
+function openRoadmapEdit() {
+  const el = document.getElementById('roadmapEditItems');
+  el.innerHTML = ROADMAP_EDITABLE.map((p,i) => `
+    <div class="roadmap-edit-item">
+      <div class="roadmap-edit-row">
+        <span class="roadmap-edit-label">PHASE</span>
+        <input class="roadmap-edit-input" id="rname_${i}" value="${p.name}" placeholder="Phase name">
+      </div>
+      <div class="roadmap-edit-row">
+        <span class="roadmap-edit-label">TIMELINE</span>
+        <input class="roadmap-edit-input" id="rtime_${i}" value="${p.time}" placeholder="e.g. Months 1-3">
+      </div>
+      <div class="roadmap-edit-row">
+        <span class="roadmap-edit-label">STATUS</span>
+        <select class="roadmap-status-select" id="rstatus_${i}">
+          <option value="done" ${p.status==='done'?'selected':''}>✅ Done</option>
+          <option value="current" ${p.status==='current'?'selected':''}>🔵 Current</option>
+          <option value="upcoming" ${p.status==='upcoming'?'selected':''}>⬜ Upcoming</option>
+        </select>
+        <span class="roadmap-edit-label" style="margin-left:10px">PROGRESS</span>
+        <input class="roadmap-progress-input" id="rprog_${i}" value="${p.progress}" type="number" min="0" max="100">
+        <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">%</span>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('roadmapEditModal').classList.add('open');
+}
+
+function saveRoadmap() {
+  ROADMAP_EDITABLE.forEach((p,i) => {
+    p.name = document.getElementById('rname_'+i).value;
+    p.time = document.getElementById('rtime_'+i).value;
+    p.status = document.getElementById('rstatus_'+i).value;
+    p.progress = parseInt(document.getElementById('rprog_'+i).value) || 0;
+  });
+  // Update ROADMAP array
+  ROADMAP_EDITABLE.forEach((p,i) => {
+    ROADMAP[i].name = p.name;
+    ROADMAP[i].time = p.time;
+    ROADMAP[i].status = p.status;
+    ROADMAP[i].progress = p.progress;
+  });
+  try { localStorage.setItem('roadmap_v22', JSON.stringify(ROADMAP)); } catch(e){}
+  document.getElementById('roadmapEditModal').classList.remove('open');
+  renderRoadmap();
+}
+
+function loadRoadmap() {
+  try {
+    const saved = localStorage.getItem('roadmap_v22');
+    if(saved) {
+      const data = JSON.parse(saved);
+      data.forEach((p,i) => { if(ROADMAP[i]) { ROADMAP[i].name=p.name; ROADMAP[i].time=p.time; ROADMAP[i].status=p.status; ROADMAP[i].progress=p.progress; }});
+      ROADMAP_EDITABLE = JSON.parse(JSON.stringify(ROADMAP));
+    }
+  } catch(e){}
+}
+
+// ===== SETUP SCREEN =====
+function checkSetup() {
+  const key = localStorage.getItem('or_api_key');
+  if(key) {
+    document.getElementById('setupOverlay').style.display = 'none';
+  }
+}
+
+function activateKey() {
+  const input = document.getElementById('setupKeyInput');
+  const key = input.value.trim();
+  const error = document.getElementById('setupError');
+  
+  if(!key.startsWith('sk-or-v1-')) {
+    error.style.display = 'block';
+    return;
+  }
+  
+  error.style.display = 'none';
+  localStorage.setItem('or_api_key', key);
+  document.getElementById('setupOverlay').style.display = 'none';
+  
+  // Show success in AI chat
+  setTimeout(() => {
+    appendAiMessage('assistant', '✅ API key activated! I am your CISO career coach. Ask me anything about security frameworks, career strategy, habits, or your roadmap!');
+  }, 500);
+}
+
+function skipSetup() {
+  document.getElementById('setupOverlay').style.display = 'none';
+  // Show a helpful hint in the AI chat
+  setTimeout(() => {
+    appendAiMessage('assistant', '👋 Welcome! The AI coach is not active yet. Click ⚙️ key in the AI Coach header anytime to add your OpenRouter key and activate it. Enjoy the tracker!');
+  }, 600);
+}
+
+function resetApiKey() {
+  localStorage.removeItem('or_api_key');
+  document.getElementById('setupOverlay').style.display = 'flex';
+}
+
+// ===== INIT =====
+function init() {
+  checkSetup();
+  loadRoadmap();
+  document.getElementById('headerDate').textContent = new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  document.getElementById('modalDate').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  document.getElementById('weekLabel').textContent = getWeekLabel();
+  document.getElementById('currentQ').textContent = Math.ceil((new Date().getMonth()+1)/3);
+  document.getElementById('energySlider').addEventListener('input',function(){document.getElementById('energyVal').textContent=this.value+' / 10';});
+  document.getElementById('aiInput').addEventListener('keydown',function(e){if(e.key==='Enter') sendAiMessage();});
+  loadFromStorage();
+  initQuote();
+  renderAll();
+}
+
+function loadFromStorage() {
+  try {
+    const hc=localStorage.getItem('hc_v22'); if(hc) habitChecks=JSON.parse(hc);
+    const gl=localStorage.getItem('gl_v22'); if(gl) goalsList=JSON.parse(gl);
+    const pr=localStorage.getItem('pr_v22'); if(pr) priorities=JSON.parse(pr);
+    const id=localStorage.getItem('id_v22'); if(id) ideas=JSON.parse(id);
+    const hb=localStorage.getItem('hb_v22'); if(hb) HABITS=JSON.parse(hb);
+    const qn=localStorage.getItem('qn_v22'); if(qn) document.getElementById('quickNote').value=qn;
+    document.getElementById('quickNote').addEventListener('input',function(){localStorage.setItem('qn_v22',this.value);});
+  } catch(e){}
+}
+
+function save() {
+  try {
+    localStorage.setItem('hc_v22',JSON.stringify(habitChecks));
+    localStorage.setItem('gl_v22',JSON.stringify(goalsList));
+    localStorage.setItem('pr_v22',JSON.stringify(priorities));
+    localStorage.setItem('id_v22',JSON.stringify(ideas));
+    localStorage.setItem('hb_v22',JSON.stringify(HABITS));
+  } catch(e){}
+}
+
+function renderAll() {
+  renderCalendar(); renderHabits(); renderPriorities(); renderRoadmap();
+  renderWeekly(); renderGoals(); renderHeatmap(); renderQuarterly(); renderIdeas();
+  updateStats();
+}
+
+// ===== UTILS =====
+function dateKey(d){return d.toISOString().split('T')[0];}
+function getWeekLabel(){const n=new Date(),s=new Date(n);s.setDate(n.getDate()-((n.getDay()+6)%7));return s.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+
+// ===== QUOTE BANNER =====
+function initQuote() {
+  // Use day of year to pick a consistent daily quote
+  const now = new Date();
+  const start = new Date(now.getFullYear(),0,0);
+  const dayOfYear = Math.floor((now-start)/86400000);
+  currentQuoteIndex = dayOfYear % QUOTES.length;
+  displayQuote();
+}
+
+function displayQuote() {
+  const q = QUOTES[currentQuoteIndex];
+  document.getElementById('quoteText').textContent = '"' + q.text + '"';
+  document.getElementById('quoteAuthor').textContent = q.author;
+}
+
+function nextQuote() {
+  currentQuoteIndex = (currentQuoteIndex + 1) % QUOTES.length;
+  displayQuote();
+}
+
+// ===== VIEW SWITCH =====
+function switchView(name,btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function switchIdea(name,btn){
+  document.querySelectorAll('.idea-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.idea-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ===== CALENDAR =====
+function renderCalendar(){
+  const year=calViewDate.getFullYear(),month=calViewDate.getMonth();
+  document.getElementById('calMonth').textContent=calViewDate.toLocaleDateString('en-US',{month:'short',year:'numeric'}).toUpperCase();
+  const first=new Date(year,month,1);
+  let startDay=first.getDay()-1; if(startDay<0) startDay=6;
+  const total=new Date(year,month+1,0).getDate();
+  const today=new Date();
+  let html=['M','T','W','T','F','S','S'].map(d=>`<div class="cal-dl">${d}</div>`).join('');
+  for(let i=0;i<startDay;i++) html+=`<div class="cal-d empty"></div>`;
+  for(let d=1;d<=total;d++){
+    const date=new Date(year,month,d);
+    const key=dateKey(date);
+    const isToday=date.toDateString()===today.toDateString();
+    const hasEntry=habitChecks[key]&&Object.values(habitChecks[key]).some(v=>v);
+    html+=`<div class="cal-d ${isToday?'today':''} ${hasEntry?'has-entry':''}" onclick="openLogForDate('${key}')">${d}</div>`;
+  }
+  document.getElementById('calGrid').innerHTML=html;
+}
+function changeMonth(dir){calViewDate.setMonth(calViewDate.getMonth()+dir);renderCalendar();}
+function openLogForDate(key){document.getElementById('modalDate').textContent=new Date(key+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});document.getElementById('modalOverlay').classList.add('open');}
+
+// ===== PRIORITIES =====
+function renderPriorities(){
+  document.getElementById('priorityList').innerHTML=priorities.map((p,i)=>`
+    <div class="priority-item">
+      <span class="priority-rank">${i+1}.</span>
+      <div class="priority-dot ${p.color}" onclick="cyclePriColor(${p.id})" title="Click to change"></div>
+      <input class="priority-input" value="${p.text}" onchange="updatePriText(${p.id},this.value)" placeholder="Priority ${i+1}...">
+    </div>`).join('');
+}
+function cyclePriColor(id){const p=priorities.find(p=>p.id===id);if(!p)return;const c={red:'yellow',yellow:'green',green:'red'};p.color=c[p.color]||'red';save();renderPriorities();}
+function updatePriText(id,val){const p=priorities.find(p=>p.id===id);if(p){p.text=val;save();}}
+
+// ===== ROADMAP =====
+function renderRoadmap(){
+  document.getElementById('roadmapList').innerHTML=ROADMAP.map(p=>`
+    <div class="roadmap-item ${p.status==='current'?'active-phase':''}">
+      <div class="phase-dot ${p.status}"></div>
+      <div style="flex:1">
+        <div class="phase-name">${p.name}</div>
+        <div class="phase-time">${p.time}</div>
+        ${p.progress>0?`<div class="phase-bar"><div class="phase-fill" style="width:${p.progress}%;background:${p.color}"></div></div>`:''}
+      </div>
+    </div>`).join('');
+}
+
+// ===== HABITS =====
+function renderHabits(){
+  const key=dateKey(new Date());
+  if(!habitChecks[key]) habitChecks[key]={};
+  document.getElementById('habitList').innerHTML=HABITS.map(h=>`
+    <div class="habit-row">
+      <span class="habit-cat-tag" style="background:${h.color}22;color:${h.color}">${h.cat}</span>
+      <span class="habit-name">${h.name}</span>
+      <div class="habit-check ${habitChecks[key][h.id]?'checked':''}" onclick="toggleHabit(${h.id})">${habitChecks[key][h.id]?'✓':''}</div>
+    </div>`).join('');
+  updateStats();
+}
+
+function toggleHabit(id){const key=dateKey(new Date());if(!habitChecks[key])habitChecks[key]={};habitChecks[key][id]=!habitChecks[key][id];save();renderHabits();renderCalendar();}
+
+function updateStats(){
+  const key=dateKey(new Date());
+  const done=habitChecks[key]?Object.values(habitChecks[key]).filter(v=>v).length:0;
+  document.getElementById('todayDone').textContent=done;
+  document.getElementById('todayTotal').textContent=HABITS.length;
+}
+
+function toggleAddHabit(){const f=document.getElementById('addHabitForm');f.style.display=f.style.display==='none'?'block':'none';}
+function toggleAddHabitWeekly(){const f=document.getElementById('addHabitWeeklyForm');f.style.display=f.style.display==='none'?'block':'none';}
+
+function addHabit(){
+  const text=document.getElementById('habitNameInput').value.trim();
+  if(!text)return;
+  const cat=document.getElementById('habitCatInput').value;
+  HABITS.push({id:++idCounter,name:text,cat,color:CAT_COLORS[cat]||'var(--accent)'});
+  document.getElementById('habitNameInput').value='';
+  save(); renderHabits(); renderWeekly();
+}
+
+function addHabitFromWeekly(){
+  const text=document.getElementById('habitNameInputW').value.trim();
+  if(!text)return;
+  const cat=document.getElementById('habitCatInputW').value;
+  HABITS.push({id:++idCounter,name:text,cat,color:CAT_COLORS[cat]||'var(--accent)'});
+  document.getElementById('habitNameInputW').value='';
+  save(); renderHabits(); renderWeekly();
+}
+
+function deleteHabit(id){
+  HABITS=HABITS.filter(h=>h.id!==id);
+  save(); renderHabits(); renderWeekly();
+}
+
+// ===== WEEKLY =====
+function renderWeekly(){
+  const now=new Date();
+  const sow=new Date(now); sow.setDate(now.getDate()-((now.getDay()+6)%7));
+  document.getElementById('weeklyGrid').innerHTML=HABITS.map(h=>{
+    let checks='',done=0;
+    for(let i=0;i<7;i++){
+      const d=new Date(sow); d.setDate(d.getDate()+i);
+      const key=dateKey(d); const checked=habitChecks[key]?.[h.id];
+      if(checked) done++;
+      checks+=`<div class="wk-check ${checked?'checked':''}" onclick="toggleWeekDay(${h.id},'${key}')">${checked?'✓':''}</div>`;
+    }
+    const rate=Math.round(done/7*100);
+    return `<div class="wk-row">
+      <span class="wk-name">${h.name}</span>
+      <div class="wk-checks">${checks}</div>
+      <div class="wk-rate" style="color:${rate>=70?'var(--green)':rate>=40?'var(--yellow)':'var(--muted)'}">${rate}%</div>
+      <button class="wk-del" onclick="deleteHabit(${h.id})" title="Remove habit">✕</button>
+    </div>`;
+  }).join('');
+
+  const fakeData=[55,70,48,82,65,78,71,84];
+  document.getElementById('weeklyBarChart').innerHTML=['W-7','W-6','W-5','W-4','W-3','W-2','W-1','NOW'].map((l,i)=>`
+    <div class="bar-col">
+      <div class="bar" style="height:${fakeData[i]}%;background:${i===7?'var(--accent)':'var(--surface3)'};border:1px solid ${i===7?'var(--accent)':'var(--border)'}"></div>
+      <div class="bar-lbl">${l}</div>
+    </div>`).join('');
+
+  const cats=[{n:'TECH',v:0.72,c:'var(--accent2)'},{n:'LEAD',v:0.58,c:'var(--accent3)'},{n:'LEARN',v:0.84,c:'var(--accent4)'},{n:'HLTH',v:0.45,c:'var(--accent5)'}];
+  document.getElementById('radialChart').innerHTML=cats.map(c=>{
+    const r=26,circ=2*Math.PI*r,dash=circ*c.v,gap=circ*(1-c.v);
+    return `<div class="radial-item">
+      <svg width="64" height="64" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="${r}" fill="none" stroke="var(--border)" stroke-width="6"/>
+        <circle cx="32" cy="32" r="${r}" fill="none" stroke="${c.c}" stroke-width="6" stroke-dasharray="${dash} ${gap}" stroke-linecap="round" transform="rotate(-90 32 32)"/>
+        <text x="32" y="36" text-anchor="middle" fill="${c.c}" font-family="Space Mono" font-size="10" font-weight="bold">${Math.round(c.v*100)}%</text>
+      </svg>
+      <div class="radial-lbl">${c.n}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleWeekDay(hid,key){if(!habitChecks[key])habitChecks[key]={};habitChecks[key][hid]=!habitChecks[key][hid];save();renderWeekly();if(dateKey(new Date())===key)renderHabits();}
+
+// ===== GOALS =====
+const colorMap={red:'var(--red)',yellow:'var(--yellow)',green:'var(--green)'};
+
+function renderGoals(){
+  document.getElementById('goalsList').innerHTML=goalsList.map(g=>`
+    <div class="goal-item ${g.color}">
+      <div class="goal-top">
+        <div class="color-cycle-btn" style="background:${colorMap[g.color]}" onclick="cycleGoalColor(${g.id})" title="Click to change priority"></div>
+        <div class="goal-text">${g.text}</div>
+        <div class="goal-pct" style="color:${colorMap[g.color]}">${g.progress}%</div>
+      </div>
+      <div class="goal-bar"><div class="goal-fill" style="width:${g.progress}%;background:${colorMap[g.color]}"></div></div>
+      <div class="goal-meta">
+        <span class="goal-tag">// ${g.cat}</span>
+        <span class="goal-tag">· ${g.timeline}</span>
+        <div class="goal-actions">
+          <button class="btn-sm" onclick="adjustProgress(${g.id},-10)">-10%</button>
+          <button class="btn-sm" onclick="adjustProgress(${g.id},10)">+10%</button>
+          <button class="btn-sm" onclick="deleteGoal(${g.id})" style="color:var(--red)">✕</button>
+        </div>
+      </div>
+    </div>`).join('');
+
+  const qel=document.getElementById('quarterlyGoals');
+  const qGoals=goalsList.filter(g=>g.timeline==='Quarterly');
+  if(qel) qel.innerHTML=qGoals.length?qGoals.map(g=>`
+    <div class="goal-item ${g.color}">
+      <div class="goal-top"><div class="goal-text">${g.text}</div><div class="goal-pct" style="color:${colorMap[g.color]}">${g.progress}%</div></div>
+      <div class="goal-bar"><div class="goal-fill" style="width:${g.progress}%;background:${colorMap[g.color]}"></div></div>
+    </div>`).join(''):'<p style="color:var(--muted);font-size:13px;padding:12px">No quarterly goals yet. Add them in Monthly view.</p>';
+}
+
+function cycleGoalColor(id){const g=goalsList.find(g=>g.id===id);if(g){const c={red:'yellow',yellow:'green',green:'red'};g.color=c[g.color]||'red';save();renderGoals();}}
+function toggleAddGoal(){const f=document.getElementById('addGoalForm');f.style.display=f.style.display==='none'?'block':'none';}
+function addGoal(){
+  const text=document.getElementById('goalInput').value.trim(); if(!text)return;
+  goalsList.push({id:Date.now(),text,cat:document.getElementById('goalCat').value,color:document.getElementById('goalColor').value,timeline:document.getElementById('goalTimeline').value,progress:0});
+  document.getElementById('goalInput').value=''; save(); renderGoals();
+}
+function adjustProgress(id,delta){const g=goalsList.find(g=>g.id===id);if(g){g.progress=Math.max(0,Math.min(100,g.progress+delta));save();renderGoals();}}
+function deleteGoal(id){goalsList=goalsList.filter(g=>g.id!==id);save();renderGoals();}
+
+// ===== IDEAS =====
+function renderIdeas(){
+  ['ondeck','parking','warehouse'].forEach(zone=>{
+    const el=document.getElementById('list-'+zone);
+    if(!ideas[zone]||!ideas[zone].length){el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">No ideas here yet. Add one above!</div>`;return;}
+    el.innerHTML=ideas[zone].map(item=>`
+      <div class="idea-item">
+        <div class="idea-color-dot ${item.color}" onclick="cycleIdeaColor('${zone}',${item.id})" title="Click to change priority"></div>
+        <span class="idea-text">${item.text}</span>
+        <span class="idea-meta">${item.date}</span>
+        <div class="idea-actions">
+          ${zone!=='ondeck'?`<button class="idea-action-btn" onclick="moveIdea('${zone}','ondeck',${item.id})">→ On Deck</button>`:''}
+          ${zone!=='parking'?`<button class="idea-action-btn" onclick="moveIdea('${zone}','parking',${item.id})">→ Parking</button>`:''}
+          ${zone!=='warehouse'?`<button class="idea-action-btn" onclick="moveIdea('${zone}','warehouse',${item.id})">→ Warehouse</button>`:''}
+          <button class="idea-action-btn del" onclick="deleteIdea('${zone}',${item.id})">✕</button>
+        </div>
+      </div>`).join('');
+  });
+}
+
+function addIdea(zone){const input=document.getElementById('input-'+zone);const text=input.value.trim();if(!text)return;ideas[zone].push({id:++idCounter,text,color:'green',date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'})});input.value='';save();renderIdeas();}
+function cycleIdeaColor(zone,id){const item=ideas[zone].find(i=>i.id===id);if(item){const c={red:'yellow',yellow:'green',green:'red'};item.color=c[item.color]||'red';save();renderIdeas();}}
+function moveIdea(from,to,id){const item=ideas[from].find(i=>i.id===id);if(!item)return;ideas[from]=ideas[from].filter(i=>i.id!==id);ideas[to].push(item);save();renderIdeas();}
+function deleteIdea(zone,id){ideas[zone]=ideas[zone].filter(i=>i.id!==id);save();renderIdeas();}
+
+// ===== HEATMAP =====
+function renderHeatmap(){
+  ['heatmap','yearHeatmap'].forEach((elId,idx)=>{
+    const cells=idx===0?91:364;
+    const today=new Date(); let html='';
+    for(let i=cells-1;i>=0;i--){
+      const d=new Date(today); d.setDate(d.getDate()-i);
+      const key=dateKey(d);
+      const count=habitChecks[key]?Object.values(habitChecks[key]).filter(v=>v).length:0;
+      const level=count===0?0:count<3?1:count<5?2:count<7?3:4;
+      html+=`<div class="heat-cell heat-${level}" title="${key}"></div>`;
+    }
+    const el=document.getElementById(elId); if(el) el.innerHTML=html;
+  });
+}
+
+// ===== QUARTERLY =====
+function renderQuarterly(){
+  const now=new Date(),q=Math.ceil((now.getMonth()+1)/3);
+  const months=[(q-1)*3,(q-1)*3+1,(q-1)*3+2];
+  const mNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const el=document.getElementById('quarterGrid'); if(!el)return;
+  el.innerHTML=months.map(m=>{
+    const dim=new Date(now.getFullYear(),m+1,0).getDate();
+    let cells='';
+    for(let d=1;d<=dim;d++){const key=dateKey(new Date(now.getFullYear(),m,d));const count=habitChecks[key]?Object.values(habitChecks[key]).filter(v=>v).length:0;cells+=`<div class="q-cell ${count===0?'':count>=6?'high':'filled'}">${d}</div>`;}
+    const active=Array.from({length:dim},(_,i)=>{const k=dateKey(new Date(now.getFullYear(),m,i+1));return habitChecks[k]&&Object.values(habitChecks[k]).some(v=>v)?1:0;}).reduce((a,b)=>a+b,0);
+    const total=Array.from({length:dim},(_,i)=>{const k=dateKey(new Date(now.getFullYear(),m,i+1));return habitChecks[k]?Object.values(habitChecks[k]).filter(v=>v).length:0;}).reduce((a,b)=>a+b,0);
+    return `<div class="quarter-month">
+      <div class="qm-name">${mNames[m].toUpperCase()}</div>
+      <div class="q-mini-cal">${cells}</div>
+      <div class="q-stats">
+        <div class="q-stat"><div class="q-stat-num" style="color:var(--accent)">${active}</div><div class="q-stat-lbl">Active</div></div>
+        <div class="q-stat"><div class="q-stat-num" style="color:var(--accent3)">${total}</div><div class="q-stat-lbl">Done</div></div>
+        <div class="q-stat"><div class="q-stat-num" style="color:var(--accent4)">${active?Math.round(total/active*10)/10:0}</div><div class="q-stat-lbl">Avg</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===== MODAL =====
+function selectMood(btn){document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');}
+function saveLog(){document.getElementById('modalOverlay').classList.remove('open');streak++;document.getElementById('streakNum').textContent=streak;renderHeatmap();renderQuarterly();}
+
+// ===== AI CHAT =====
+async function sendAiMessage() {
+  const input = document.getElementById('aiInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const btn = document.getElementById('aiSendBtn');
+  input.value = '';
+  btn.disabled = true;
+
+  appendAiMessage('user', text);
+  // Build message with file context if attached
+  let userContent = text;
+  if(attachedFile && attachedFileData) {
+    if(attachedFile.type.startsWith('image/')) {
+      userContent = [
+        {type:'image_url', image_url:{url: attachedFileData}},
+        {type:'text', text: text || 'Please analyze this image in the context of my CISO career journey.'}
+      ];
+    } else {
+      userContent = `[Attached file: ${attachedFile.name}]\n\nFile contents:\n${attachedFileData.substring(0,3000)}\n\n---\n\n${text}`;
+    }
+    clearAttachment();
+  }
+
+  aiConversation.push({role:'user', content: userContent});
+  appendAiMessage('assistant', '...', true);
+
+  const systemPrompt = `You are an expert CISO career coach and cybersecurity advisor embedded in a career habit tracker. Your user is actively pursuing a CISO role within 18-24 months. They are neurodivergent and prefer clear, concise, step-by-step communication.
+
+Your areas of expertise:
+- CISO career strategy and positioning
+- Security frameworks: NIST CSF, ISO 27001, NIST 800-53, NIST 800-171, FISMA, CMMC, FedRAMP, ICD 503
+- Building a security portfolio and demonstrating board-level thinking
+- Productivity, habit formation, and neurodivergent-friendly learning strategies
+- Daily habits, goal setting, and accountability
+
+Keep responses concise, warm, and actionable. Use bullet points for multi-step advice. Max 3-4 sentences for conversational replies, slightly longer for technical questions. Always be encouraging.`;
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + (localStorage.getItem('or_api_key') || ''),
+        'HTTP-Referer': 'https://corvus-one.github.io/ciso-career-tracker/',
+        'X-Title': 'CISO Career Tracker'
+      },
+      body: JSON.stringify({
+        model: 'openai/gpt-3.5-turbo',
+        max_tokens: 1000,
+        messages: [
+          {role: 'system', content: systemPrompt},
+          ...aiConversation
+        ]
+      })
+    });
+
+    const data = await response.json();
+    console.log('OpenRouter response:', JSON.stringify(data));
+    if(data.error) {
+      removeThinking();
+      appendAiMessage('assistant', '⚠️ API Error: ' + JSON.stringify(data.error));
+      btn.disabled = false; input.focus(); return;
+    }
+    const reply = data.choices?.[0]?.message?.content || "Sorry, I couldn't get a response. Please try again.";
+    aiConversation.push({role:'assistant', content: reply});
+    removeThinking();
+    appendAiMessage('assistant', reply);
+  } catch(e) {
+    removeThinking();
+    console.error('AI Error:', e);
+    appendAiMessage('assistant', '⚠️ Error: ' + e.message);
+  }
+
+  btn.disabled = false;
+  input.focus();
+}
+
+function appendAiMessage(role, text, isThinking=false) {
+  const el = document.getElementById('aiMessages');
+  const div = document.createElement('div');
+  div.className = `ai-msg ${role}${isThinking?' thinking':''}`;
+  if(isThinking) div.id = 'aiThinking';
+  div.textContent = text;
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+}
+
+function removeThinking() {
+  const t = document.getElementById('aiThinking');
+  if(t) t.remove();
+}
+
+init();
+</script>
+
+<!-- ROADMAP EDIT MODAL -->
+<div class="roadmap-edit-modal" id="roadmapEditModal">
+  <div class="roadmap-edit-box">
+    <button class="roadmap-close-btn" onclick="document.getElementById('roadmapEditModal').classList.remove('open')">✕ Close</button>
+    <div class="roadmap-edit-title">// EDIT CAREER ROADMAP</div>
+    <div id="roadmapEditItems"></div>
+    <button class="roadmap-save-btn" onclick="saveRoadmap()">SAVE ROADMAP →</button>
+  </div>
+</div>
+
+</body>
+</html>
