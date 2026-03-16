@@ -25,6 +25,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tippy.js/6.3.7/tippy.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tippy.js/6.3.7/tippy.min.css">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -585,6 +588,10 @@
   .countdown-cert-input:focus { border-color:var(--accent4); }
   .countdown-save-btn { padding:6px 14px; border-radius:6px; background:var(--accent4); border:none; color:white; font-family:var(--mono); font-size:10px; cursor:pointer; letter-spacing:1px; }
 
+  /* ── ACCESSIBILITY ── */
+  .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+  :focus-visible { outline:2px solid var(--accent); outline-offset:2px; border-radius:4px; }
+
   /* ── LUCIDE ICONS ── */
   .icon { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
   .icon svg { width:15px; height:15px; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; fill:none; }
@@ -780,6 +787,44 @@
   }
 
   /* ── PRINT / PDF EXPORT STYLES ── */
+  /* ── TOAST NOTIFICATIONS ── */
+  .toast-container { position:fixed; bottom:80px; right:20px; z-index:600; display:flex; flex-direction:column; gap:8px; pointer-events:none; }
+  @media(max-width:768px) { .toast-container { bottom:90px; right:12px; left:12px; } }
+  .toast { display:flex; align-items:center; gap:10px; padding:11px 16px; border-radius:10px; background:var(--surface); border:1px solid var(--border); box-shadow:0 4px 20px rgba(0,0,0,0.25); font-size:13px; color:var(--text); pointer-events:all; animation:toastIn 0.3s ease; max-width:320px; }
+  @media(max-width:768px) { .toast { max-width:100%; } }
+  @keyframes toastIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes toastOut { from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(8px)} }
+  .toast.leaving { animation:toastOut 0.25s ease forwards; }
+  .toast-icon { width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0; font-weight:700; }
+  .toast.success .toast-icon { background:rgba(46,213,115,0.15); color:var(--green); }
+  .toast.error .toast-icon { background:rgba(255,71,87,0.12); color:var(--red); }
+  .toast.info .toast-icon { background:rgba(124,106,247,0.12); color:var(--accent); }
+  .toast.warning .toast-icon { background:rgba(255,211,42,0.12); color:var(--yellow); }
+  .toast-msg { flex:1; line-height:1.4; }
+  .toast-close { background:transparent; border:none; color:var(--muted); cursor:pointer; font-size:14px; padding:0 2px; flex-shrink:0; transition:color 0.2s; }
+  .toast-close:hover { color:var(--text); }
+  .toast-progress { position:absolute; bottom:0; left:0; height:2px; border-radius:0 0 10px 10px; animation:toastProgress linear forwards; }
+  .toast { position:relative; overflow:hidden; }
+  @keyframes toastProgress { from{width:100%} to{width:0%} }
+  .toast.success .toast-progress { background:var(--green); }
+  .toast.error .toast-progress { background:var(--red); }
+  .toast.info .toast-progress { background:var(--accent); }
+  .toast.warning .toast-progress { background:var(--yellow); }
+
+  /* ── TIPPY CUSTOM THEME ── */
+  .tippy-box[data-theme~='ciso'] {
+    background:var(--surface2);
+    border:1px solid var(--border);
+    color:var(--text);
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.5px;
+    border-radius:8px;
+    box-shadow:0 4px 16px rgba(0,0,0,0.2);
+  }
+  .tippy-box[data-theme~='ciso'] .tippy-arrow { color:var(--surface2); }
+  .tippy-box[data-theme~='ciso'] .tippy-content { padding:6px 10px; }
+
   /* ── PDF EXPORT OVERLAY ── */
   .pdf-overlay { display:none; position:fixed; top:0; right:0; bottom:0; left:0; background:rgba(0,0,0,0.85); z-index:400; align-items:center; justify-content:center; flex-direction:column; gap:16px; }
   .pdf-overlay.open { display:flex; }
@@ -856,6 +901,9 @@
 </style>
 </head>
 <body>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
 
 <!-- iOS INSTALL BANNER -->
 <div class="ios-install-banner" id="iosInstallBanner">
@@ -940,25 +988,25 @@
   </div>
 </div>
 
-<header class="header">
-  <div class="logo-block">
-    <div class="logo">CAREER_TRACKER</div>
-    <div class="version-tag">KAIZEN v05.0</div>
+<header class="header" role="banner" aria-label="CISO Career Tracker">
+  <div class="logo-block" aria-label="Application logo">
+    <div class="logo" aria-hidden="true">CAREER_TRACKER</div>
+    <div class="version-tag" aria-label="Version KAIZEN v05.0">KAIZEN v05.0</div>
   </div>
-  <div class="nav-pills">
-    <button class="nav-btn active" onclick="switchView('daily',this)">DAILY</button>
-    <button class="nav-btn" onclick="switchView('weekly',this)">WEEKLY</button>
-    <button class="nav-btn" onclick="switchView('monthly',this)">MONTHLY</button>
-    <button class="nav-btn" onclick="switchView('quarterly',this)">QUARTERLY</button>
-    <button class="nav-btn" onclick="switchView('ideas',this)">IDEAS</button>
+  <nav class="nav-pills" role="navigation" aria-label="Main views">
+    <button class="nav-btn active" onclick="switchView('daily',this)" aria-label="Daily view" aria-pressed="true">DAILY</button>
+    <button class="nav-btn" onclick="switchView('weekly',this)" aria-label="Weekly view" aria-pressed="false">WEEKLY</button>
+    <button class="nav-btn" onclick="switchView('monthly',this)" aria-label="Monthly view" aria-pressed="false">MONTHLY</button>
+    <button class="nav-btn" onclick="switchView('quarterly',this)" aria-label="Quarterly view" aria-pressed="false">QUARTERLY</button>
+    <button class="nav-btn" onclick="switchView('ideas',this)" aria-label="Ideas view" aria-pressed="false">IDEAS</button>
+  </nav>
+  <div class="feature-pills" role="toolbar" aria-label="Feature actions">
+    <button class="nav-btn feature-btn" onclick="openChangeLog()" style="border-color:rgba(124,106,247,0.4)" data-tip="View & edit all enhancement history" aria-label="Open change log"><span class="icon"><i data-lucide="clipboard-list"></i></span> CHANGE LOG</button>
+    <button class="nav-btn feature-btn" onclick="openDigest()" style="border-color:rgba(105,240,174,0.4)" data-tip="Generate your weekly progress summary" aria-label="Open wins digest"><span class="icon"><i data-lucide="mail"></i></span> WINS DIGEST</button>
+    <button class="nav-btn feature-btn" onclick="openInterview()" style="border-color:rgba(240,98,146,0.4)" data-tip="23 CISO interview questions with confidence rating" aria-label="Open interview prep"><span class="icon"><i data-lucide="target"></i></span> INTERVIEW PREP</button>
+    <button class="nav-btn feature-btn" onclick="exportPDF()" style="border-color:rgba(255,138,101,0.4)" data-tip="Download a professional PDF progress report" aria-label="Export PDF report"><span class="icon"><i data-lucide="file-down"></i></span> EXPORT PDF</button>
   </div>
-  <div class="feature-pills">
-    <button class="nav-btn feature-btn" onclick="openChangeLog()" style="border-color:rgba(124,106,247,0.4)"><span class="icon"><i data-lucide="clipboard-list"></i></span> CHANGE LOG</button>
-    <button class="nav-btn feature-btn" onclick="openDigest()" style="border-color:rgba(105,240,174,0.4)"><span class="icon"><i data-lucide="mail"></i></span> WINS DIGEST</button>
-    <button class="nav-btn feature-btn" onclick="openInterview()" style="border-color:rgba(240,98,146,0.4)"><span class="icon"><i data-lucide="target"></i></span> INTERVIEW PREP</button>
-    <button class="nav-btn feature-btn" onclick="exportPDF()" style="border-color:rgba(255,138,101,0.4)"><span class="icon"><i data-lucide="file-down"></i></span> EXPORT PDF</button>
-  </div>
-  <div class="header-right">
+  <div class="header-right" role="complementary" aria-label="Header controls">
       <button class="sidebar-drawer-btn" onclick="toggleSidebar()" title="Menu"><span class="icon icon-lg"><i data-lucide="menu"></i></span></button>
     <!-- CHANGE 6: Light/Dark toggle -->
     <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">
@@ -980,7 +1028,7 @@
 
 <div class="main">
   <!-- SIDEBAR (CHANGE 4: wider sidebar via CSS var --sidebar-width:300px) -->
-  <aside class="sidebar">
+  <aside class="sidebar" role="complementary" aria-label="Sidebar — calendar, priorities, tools">
 
     <!-- Mobile-only feature buttons -->
     <div class="mobile-feature-buttons">
@@ -1085,10 +1133,10 @@
   <div class="sidebar-resize" id="sidebarResize" title="Drag to resize"></div>
 
   <!-- MAIN CONTENT -->
-  <main class="content">
+  <main class="content" role="main" aria-label="Main content area">
 
     <!-- DAILY VIEW -->
-    <div id="view-daily" class="view active">
+    <div id="view-daily" class="view active" role="region" aria-label="Daily habit tracking">
       <div class="stats-row">
         <div class="stat-card">
           <div class="stat-num" style="color:var(--accent3)" id="todayDone">0</div>
@@ -1162,7 +1210,7 @@
     </div>
 
     <!-- WEEKLY VIEW -->
-    <div id="view-weekly" class="view">
+    <div id="view-weekly" class="view" role="region" aria-label="Weekly habit grid">
       <div class="card">
         <div class="card-header">
           <div class="card-title">Weekly Habit Grid</div>
@@ -1223,7 +1271,7 @@
     </div>
 
     <!-- MONTHLY VIEW -->
-    <div id="view-monthly" class="view">
+    <div id="view-monthly" class="view" role="region" aria-label="Monthly goals and heatmap">
       <div class="card">
         <div class="card-header">
           <div class="card-title">Monthly Goals</div>
@@ -1263,7 +1311,7 @@
     </div>
 
     <!-- QUARTERLY VIEW -->
-    <div id="view-quarterly" class="view">
+    <div id="view-quarterly" class="view" role="region" aria-label="Quarterly overview">
       <div class="card">
         <div class="card-header">
           <div class="card-title">Quarterly Overview · Q<span id="currentQ"></span></div>
@@ -1282,7 +1330,7 @@
     </div>
 
     <!-- IDEAS VIEW -->
-    <div id="view-ideas" class="view">
+    <div id="view-ideas" class="view" role="region" aria-label="Ideas and backlog system">
       <div class="card">
         <div class="card-header">
           <div class="card-title">Ideas & Backlog System</div>
@@ -1521,6 +1569,76 @@ let attachedFile = null;
 let attachedFileData = null;
 let ROADMAP_EDITABLE = JSON.parse(JSON.stringify(ROADMAP));
 
+// ===== ACCESSIBILITY — KEYBOARD NAVIGATION =====
+function initKeyboardNav() {
+  // Escape key closes any open modal
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.open, .changelog-overlay.open, .digest-overlay.open, .interview-overlay.open, .roadmap-edit-modal.open').forEach(el => {
+        el.classList.remove('open');
+      });
+      // Close sidebar on mobile
+      const sidebar = document.querySelector('.sidebar');
+      if(sidebar.classList.contains('open')) toggleSidebar();
+    }
+    // Arrow keys cycle through views when focused on nav
+    if(e.target.closest('.nav-pills')) {
+      const btns = [...document.querySelectorAll('.nav-pills .nav-btn')];
+      const idx = btns.indexOf(e.target);
+      if(e.key === 'ArrowRight' && idx < btns.length-1) { e.preventDefault(); btns[idx+1].focus(); btns[idx+1].click(); }
+      if(e.key === 'ArrowLeft' && idx > 0) { e.preventDefault(); btns[idx-1].focus(); btns[idx-1].click(); }
+    }
+  });
+
+  // Add aria-live region for toasts
+  const liveRegion = document.createElement('div');
+  liveRegion.setAttribute('aria-live', 'polite');
+  liveRegion.setAttribute('aria-atomic', 'true');
+  liveRegion.className = 'sr-only';
+  liveRegion.id = 'ariaLive';
+  document.body.appendChild(liveRegion);
+}
+
+// ===== TOAST NOTIFICATION SYSTEM =====
+function showToast(msg, type='success', duration=3000) {
+  const icons = { success:'✓', error:'✕', info:'i', warning:'!' };
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.setAttribute('role', 'alert');
+  toast.setAttribute('aria-live', 'assertive');
+  toast.innerHTML = `
+    <div class="toast-icon">${icons[type]||'i'}</div>
+    <div class="toast-msg">${msg}</div>
+    <button class="toast-close" onclick="this.closest('.toast').remove()" aria-label="Dismiss notification">×</button>
+    <div class="toast-progress" style="animation-duration:${duration}ms"></div>`;
+  container.appendChild(toast);
+  // Announce to screen readers
+  const live = document.getElementById('ariaLive');
+  if(live) live.textContent = msg;
+  setTimeout(() => {
+    toast.classList.add('leaving');
+    setTimeout(() => toast.remove(), 280);
+  }, duration);
+}
+
+// ===== TIPPY TOOLTIPS INIT =====
+function initTooltips() {
+  if(typeof tippy === 'undefined') return;
+  // Destroy existing instances first
+  if(window._tippyInstances) {
+    window._tippyInstances.forEach(t => t.destroy());
+  }
+  window._tippyInstances = tippy('[data-tip]', {
+    theme: 'ciso',
+    placement: 'bottom',
+    arrow: true,
+    delay: [300, 0],
+    touch: false,
+    content(el) { return el.getAttribute('data-tip'); }
+  });
+}
+
 // ===== LUCIDE ICONS INIT =====
 function initIcons() {
   if(typeof lucide !== 'undefined') lucide.createIcons();
@@ -1648,6 +1766,7 @@ function saveJournalEntry() {
   saveJournalToStorage();
   hideJournalForm();
   renderJournal();
+  showToast('Journal entry saved','success');
 }
 function deleteJournalEntry(id) {
   journalEntries = journalEntries.filter(e => e.id !== id);
@@ -1739,6 +1858,7 @@ function saveRoadmap() {
   try { localStorage.setItem('roadmap_v30', JSON.stringify(ROADMAP)); } catch(e){}
   document.getElementById('roadmapEditModal').classList.remove('open');
   renderRoadmap();
+  showToast('Roadmap updated','success');
 }
 function loadRoadmap() {
   try {
@@ -1778,6 +1898,7 @@ function init() {
   document.getElementById('aiInput').addEventListener('keydown',function(e){if(e.key==='Enter') sendAiMessage();});
   loadFromStorage();
   initQuote();
+  initKeyboardNav();
   renderAll();
 }
 
@@ -1806,6 +1927,7 @@ function renderAll() {
   renderWeekly(); renderGoals(); renderHeatmap(); renderQuarterly(); renderIdeas();
   renderJournal(); updateStats();
   initIcons();
+  setTimeout(initTooltips, 200);
 }
 
 // ===== UTILS =====
@@ -1821,7 +1943,13 @@ function displayQuote() { const q=QUOTES[currentQuoteIndex]; document.getElement
 function nextQuote() { currentQuoteIndex=(currentQuoteIndex+1)%QUOTES.length; displayQuote(); }
 
 // ===== VIEW SWITCH =====
-function switchView(name,btn){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.querySelectorAll('.nav-pills .nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById('view-'+name).classList.add('active');btn.classList.add('active');}
+function switchView(name,btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-pills .nav-btn').forEach(b=>{b.classList.remove('active');b.setAttribute('aria-pressed','false');});
+  document.getElementById('view-'+name).classList.add('active');
+  btn.classList.add('active');
+  btn.setAttribute('aria-pressed','true');
+}
 function switchIdea(name,btn){document.querySelectorAll('.idea-panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.idea-tab').forEach(b=>b.classList.remove('active'));document.getElementById('panel-'+name).classList.add('active');btn.classList.add('active');}
 
 // ===== CALENDAR =====
@@ -1902,7 +2030,9 @@ function addHabit(){
   const text=document.getElementById('habitNameInput').value.trim(); if(!text)return;
   const cat=document.getElementById('habitCatInput').value;
   HABITS.push({id:++idCounter,name:text,cat,color:CAT_COLORS[cat]||'var(--accent)'});
-  document.getElementById('habitNameInput').value=''; save(); renderHabits(); renderWeekly();
+  document.getElementById('habitNameInput').value='';
+  save(); renderHabits(); renderWeekly();
+  showToast(`Habit added — "${text}"`, 'success');
 }
 function addHabitFromWeekly(){
   const text=document.getElementById('habitNameInputW').value.trim(); if(!text)return;
@@ -2084,6 +2214,7 @@ function addGoal(){
   const text=document.getElementById('goalInput').value.trim(); if(!text)return;
   goalsList.push({id:Date.now(),text,cat:document.getElementById('goalCat').value,color:document.getElementById('goalColor').value,timeline:document.getElementById('goalTimeline').value,progress:0});
   document.getElementById('goalInput').value=''; save(); renderGoals();
+  showToast('Goal added successfully','success');
 }
 function adjustProgress(id,delta){const g=goalsList.find(g=>g.id===id);if(g){g.progress=Math.max(0,Math.min(100,g.progress+delta));save();renderGoals();}}
 function deleteGoal(id){goalsList=goalsList.filter(g=>g.id!==id);save();renderGoals();}
@@ -2149,7 +2280,13 @@ function renderQuarterly(){
 
 // ===== MODAL =====
 function selectMood(btn){document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');}
-function saveLog(){document.getElementById('modalOverlay').classList.remove('open');streak++;document.getElementById('streakNum').textContent=streak;renderHeatmap();renderQuarterly();}
+function saveLog(){
+  document.getElementById('modalOverlay').classList.remove('open');
+  streak++;
+  document.getElementById('streakNum').textContent=streak;
+  renderHeatmap();renderQuarterly();
+  showToast('Daily log saved — streak updated! 🔥','success');
+}
 
 // ===== AI CHAT =====
 async function sendAiMessage() {
@@ -2286,6 +2423,7 @@ function saveCountdownDates(){
   saveCertDates();
   document.getElementById('countdownEditForm').classList.remove('open');
   renderCountdown();
+  showToast('Exam dates saved','success');
 }
 function renderCountdown(){
   const today=new Date();today.setHours(0,0,0,0);
@@ -2381,12 +2519,14 @@ function copyDigest(){
   const btn=document.getElementById('digestCopyBtn');
   navigator.clipboard.writeText(text).then(()=>{
     btn.textContent='✓ COPIED!';btn.classList.add('copied');
+    showToast('Digest copied to clipboard','success');
     setTimeout(()=>{btn.textContent='📋 COPY TO CLIPBOARD';btn.classList.remove('copied');},2500);
   }).catch(()=>{
     const el=document.getElementById('digestOutput');
     const r=document.createRange();r.selectNode(el);
     window.getSelection().removeAllRanges();window.getSelection().addRange(r);
     document.execCommand('copy');window.getSelection().removeAllRanges();
+    showToast('Digest copied','success');
   });
 }
 
