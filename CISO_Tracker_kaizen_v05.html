@@ -23,6 +23,8 @@
 <link rel="manifest" href="CISO_Tracker_manifest.json">
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -778,6 +780,15 @@
   }
 
   /* ── PRINT / PDF EXPORT STYLES ── */
+  /* ── PDF EXPORT OVERLAY ── */
+  .pdf-overlay { display:none; position:fixed; top:0; right:0; bottom:0; left:0; background:rgba(0,0,0,0.85); z-index:400; align-items:center; justify-content:center; flex-direction:column; gap:16px; }
+  .pdf-overlay.open { display:flex; }
+  .pdf-progress { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:28px 36px; text-align:center; min-width:280px; }
+  .pdf-progress-title { font-family:var(--mono); font-size:12px; color:var(--accent); letter-spacing:2px; margin-bottom:12px; }
+  .pdf-progress-bar-wrap { height:4px; background:var(--border); border-radius:2px; margin-bottom:12px; overflow:hidden; }
+  .pdf-progress-bar { height:100%; background:var(--accent); border-radius:2px; transition:width 0.3s; width:0%; }
+  .pdf-progress-msg { font-family:var(--mono); font-size:11px; color:var(--muted); }
+
   .print-summary { display:none; }
 
   @media print {
@@ -2170,7 +2181,16 @@ function removeThinking(){const t=document.getElementById('aiThinking');if(t)t.r
 init();
 </script>
 
-<!-- ── PRINT SUMMARY PANEL (hidden — only visible when printing) ── -->
+<!-- ── PDF GENERATION OVERLAY ── -->
+<div class="pdf-overlay" id="pdfOverlay">
+  <div class="pdf-progress">
+    <div class="pdf-progress-title">// GENERATING PDF</div>
+    <div class="pdf-progress-bar-wrap"><div class="pdf-progress-bar" id="pdfProgressBar"></div></div>
+    <div class="pdf-progress-msg" id="pdfProgressMsg">Building your report...</div>
+  </div>
+</div>
+
+<!-- ── PRINT SUMMARY PANEL (hidden — used for PDF generation) ── -->
 <div class="print-summary" id="printSummary"></div>
 
 
@@ -2453,117 +2473,178 @@ function updateInterviewStats(){
 }
 
 // ===== EXPORT TO PDF (TASK 2) =====
-function exportPDF() {
+async function exportPDF() {
   const today = new Date();
   const dateStr = today.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  const fileDate = today.toISOString().split('T')[0];
   const todayKey = dateKey(today);
 
-  // Build habits table rows
-  const habitRows = HABITS.map(h => {
-    const checked = habitChecks[todayKey]?.[h.id];
-    return `<tr>
-      <td>${h.name}</td>
-      <td><span style="font-family:'Space Mono',monospace;font-size:11px;padding:2px 8px;border-radius:10px;background:${h.color}22;color:${h.color}">${h.cat}</span></td>
-      <td style="text-align:center" class="${checked?'print-check':'print-uncheck'}">${checked ? '✓ Done' : '○ Pending'}</td>
-    </tr>`;
-  }).join('');
+  // Show progress overlay
+  const overlay = document.getElementById('pdfOverlay');
+  const bar = document.getElementById('pdfProgressBar');
+  const msg = document.getElementById('pdfProgressMsg');
+  overlay.classList.add('open');
 
-  // Build goals rows
-  const goalRows = goalsList.slice(0,6).map(g => {
-    const colors = {red:'#cf222e',yellow:'#c49a00',green:'#1a7a3c'};
-    const bc = colors[g.color] || '#7c6af7';
-    return `<div class="print-goal" style="border-left-color:${bc}">
-      <div style="flex:1">
-        <div class="print-goal-text">${g.text}</div>
-        <div class="print-goal-bar-wrap"><div class="print-goal-bar-fill" style="width:${g.progress}%;background:${bc}"></div></div>
+  const setProgress = (pct, text) => {
+    bar.style.width = pct + '%';
+    msg.textContent = text;
+  };
+
+  try {
+    setProgress(10, 'Building report content...');
+
+    // Build habits table
+    const habitRows = HABITS.map(h => {
+      const checked = habitChecks[todayKey]?.[h.id];
+      return `<tr>
+        <td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:12px">${h.name}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:11px;font-family:monospace;color:#5b4fcf">${h.cat}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:${checked?'#1a7a3c':'#aaa'};font-size:12px">${checked ? '✓ Done' : '○ Pending'}</td>
+      </tr>`;
+    }).join('');
+
+    const goalRows = goalsList.slice(0,5).map(g => {
+      const colors = {red:'#cf222e',yellow:'#c49a00',green:'#1a7a3c'};
+      const bc = colors[g.color] || '#7c6af7';
+      return `<div style="margin-bottom:8px;padding:8px 10px;border-left:3px solid ${bc};background:#fafafa;border-radius:0 6px 6px 0">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:12px;color:#222;flex:1">${g.text}</div>
+          <div style="font-family:monospace;font-size:12px;font-weight:700;color:${bc};margin-left:12px">${g.progress}%</div>
+        </div>
+        <div style="height:3px;background:#eee;border-radius:2px;margin-top:5px">
+          <div style="height:100%;width:${g.progress}%;background:${bc};border-radius:2px"></div>
+        </div>
         <div style="font-size:10px;color:#888;margin-top:3px">${g.cat} · ${g.timeline}</div>
+      </div>`;
+    }).join('');
+
+    const roadmapRows = ROADMAP.map(p => {
+      const dotColors = {done:'#1a7a3c',current:'#7c6af7',upcoming:'#ccc'};
+      return `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;border:1px solid #eee;border-radius:6px;margin-bottom:5px">
+        <div style="width:10px;height:10px;border-radius:50%;background:${dotColors[p.status]};flex-shrink:0"></div>
+        <div style="flex:1;font-size:12px;font-weight:600;color:#222">${p.name}</div>
+        <div style="font-family:monospace;font-size:10px;color:#888">${p.time}</div>
+        ${p.progress > 0 ? `<div style="font-family:monospace;font-size:11px;font-weight:700;color:#7c6af7">${p.progress}%</div>` : ''}
+      </div>`;
+    }).join('');
+
+    const certRows = certDates.filter(c => c.name && c.date).map(c => {
+      const exam = new Date(c.date + 'T00:00:00');
+      const days = Math.ceil((exam - today) / 86400000);
+      const color = days < 30 ? '#cf222e' : days < 90 ? '#c49a00' : '#1a7a3c';
+      return `<div style="display:flex;align-items:center;gap:12px;padding:7px 10px;background:#fff8f5;border:1px solid #ffe0cc;border-radius:6px;margin-bottom:5px">
+        <div style="font-family:monospace;font-size:11px;font-weight:700;color:#d4601a;flex:1">${c.name}</div>
+        <div style="font-family:monospace;font-size:13px;font-weight:700;color:${color}">${days > 0 ? days + ' days' : 'COMPLETE ✓'}</div>
+        <div style="font-size:11px;color:#888">${exam.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
+      </div>`;
+    }).join('');
+
+    const doneToday = habitChecks[todayKey] ? Object.values(habitChecks[todayKey]).filter(v=>v).length : 0;
+    const goalsOnTrack = goalsList.filter(g => g.progress >= 50).length;
+
+    // Build the printSummary HTML for capture
+    const printEl = document.getElementById('printSummary');
+    printEl.style.cssText = 'display:block;position:fixed;top:-9999px;left:0;width:794px;background:#fff;font-family:DM Sans,sans-serif;padding:36px;box-sizing:border-box;';
+
+    printEl.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #7c6af7;padding-bottom:14px;margin-bottom:22px">
+        <div>
+          <div style="font-family:Space Mono,monospace;font-size:15px;font-weight:700;color:#7c6af7;letter-spacing:3px">CAREER_TRACKER</div>
+          <div style="font-family:Space Mono,monospace;font-size:10px;color:#888;letter-spacing:2px;margin-top:3px">KAIZEN v05.0 · CISO CAREER PROGRESS REPORT</div>
+        </div>
+        <div style="font-family:Space Mono,monospace;font-size:11px;color:#555">${dateStr}</div>
       </div>
-      <div class="print-goal-pct" style="color:${bc}">${g.progress}%</div>
-    </div>`;
-  }).join('');
 
-  // Build roadmap rows
-  const roadmapRows = ROADMAP.map(p => {
-    const dotColors = {done:'#1a7a3c',current:'#7c6af7',upcoming:'#ccc'};
-    return `<div class="print-roadmap-item">
-      <div class="print-phase-dot" style="background:${dotColors[p.status]}"></div>
-      <div class="print-phase-name">${p.name}</div>
-      <div class="print-phase-time">${p.time}</div>
-      ${p.progress > 0 ? `<div class="print-phase-pct">${p.progress}%</div>` : ''}
-    </div>`;
-  }).join('');
-
-  // Build cert rows
-  const certRows = certDates.filter(c => c.name && c.date).map(c => {
-    const exam = new Date(c.date + 'T00:00:00');
-    const days = Math.ceil((exam - today) / 86400000);
-    return `<div class="print-cert">
-      <div class="print-cert-name">${c.name}</div>
-      <div class="print-cert-days">${days > 0 ? days + ' days' : 'COMPLETE ✓'}</div>
-      <div class="print-cert-date">${exam.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
-    </div>`;
-  }).join('');
-
-  // Done today count
-  const doneToday = habitChecks[todayKey] ? Object.values(habitChecks[todayKey]).filter(v=>v).length : 0;
-  const goalsOnTrack = goalsList.filter(g => g.progress >= 50).length;
-
-  // Build the full print panel
-  document.getElementById('printSummary').innerHTML = `
-    <div class="print-header">
-      <div>
-        <div class="print-logo">CAREER_TRACKER</div>
-        <div class="print-version">KAIZEN v05.0 · CISO CAREER PROGRESS REPORT</div>
+      <div style="margin-bottom:20px">
+        <div style="font-family:Space Mono,monospace;font-size:10px;letter-spacing:3px;color:#7c6af7;text-transform:uppercase;border-bottom:1px solid #e0e0e0;padding-bottom:6px;margin-bottom:12px">At a Glance</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+          ${[[''+doneToday,'Habits Done Today'],[''+streak,'Day Streak'],[''+goalsOnTrack,'Goals ≥ 50%'],[''+HABITS.length,'Active Habits']].map(([n,l])=>`
+          <div style="background:#f8f7ff;border:1px solid #e8e4ff;border-top:3px solid #7c6af7;border-radius:8px;padding:10px;text-align:center">
+            <div style="font-family:Space Mono,monospace;font-size:22px;font-weight:700;color:#7c6af7">${n}</div>
+            <div style="font-size:11px;color:#666;margin-top:3px">${l}</div>
+          </div>`).join('')}
+        </div>
       </div>
-      <div class="print-date">${dateStr}</div>
-    </div>
 
-    <div class="print-section">
-      <div class="print-section-title">At a Glance</div>
-      <div class="print-stats">
-        <div class="print-stat"><div class="print-stat-num">${doneToday}</div><div class="print-stat-lbl">Habits Done Today</div></div>
-        <div class="print-stat"><div class="print-stat-num">${streak}</div><div class="print-stat-lbl">🔥 Day Streak</div></div>
-        <div class="print-stat"><div class="print-stat-num">${goalsOnTrack}</div><div class="print-stat-lbl">Goals ≥ 50%</div></div>
-        <div class="print-stat"><div class="print-stat-num">${HABITS.length}</div><div class="print-stat-lbl">Active Habits</div></div>
+      <div style="margin-bottom:20px">
+        <div style="font-family:Space Mono,monospace;font-size:10px;letter-spacing:3px;color:#7c6af7;text-transform:uppercase;border-bottom:1px solid #e0e0e0;padding-bottom:6px;margin-bottom:12px">Today's Habits</div>
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr>
+            <th style="font-family:Space Mono,monospace;font-size:9px;letter-spacing:1px;color:#5b4fcf;text-align:left;padding:7px 10px;background:#f3f0ff;border:1px solid #e0d9ff">HABIT</th>
+            <th style="font-family:Space Mono,monospace;font-size:9px;letter-spacing:1px;color:#5b4fcf;text-align:left;padding:7px 10px;background:#f3f0ff;border:1px solid #e0d9ff">CATEGORY</th>
+            <th style="font-family:Space Mono,monospace;font-size:9px;letter-spacing:1px;color:#5b4fcf;text-align:center;padding:7px 10px;background:#f3f0ff;border:1px solid #e0d9ff">STATUS</th>
+          </tr></thead>
+          <tbody>${habitRows}</tbody>
+        </table>
       </div>
-    </div>
 
-    <div class="print-section">
-      <div class="print-section-title">Today's Habits</div>
-      <table class="print-table">
-        <thead><tr><th>Habit</th><th>Category</th><th>Status</th></tr></thead>
-        <tbody>${habitRows}</tbody>
-      </table>
-    </div>
+      ${goalsList.length ? `<div style="margin-bottom:20px">
+        <div style="font-family:Space Mono,monospace;font-size:10px;letter-spacing:3px;color:#7c6af7;text-transform:uppercase;border-bottom:1px solid #e0e0e0;padding-bottom:6px;margin-bottom:12px">Goals & Progress</div>
+        ${goalRows}
+      </div>` : ''}
 
-    <div class="print-section">
-      <div class="print-section-title">Goals & Progress</div>
-      ${goalRows || '<p style="color:#888;font-size:12px">No goals added yet.</p>'}
-    </div>
+      <div style="margin-bottom:20px">
+        <div style="font-family:Space Mono,monospace;font-size:10px;letter-spacing:3px;color:#7c6af7;text-transform:uppercase;border-bottom:1px solid #e0e0e0;padding-bottom:6px;margin-bottom:12px">Career Roadmap</div>
+        ${roadmapRows}
+      </div>
 
-    <div class="print-section">
-      <div class="print-section-title">Career Roadmap</div>
-      ${roadmapRows}
-    </div>
+      ${certRows ? `<div style="margin-bottom:20px">
+        <div style="font-family:Space Mono,monospace;font-size:10px;letter-spacing:3px;color:#7c6af7;text-transform:uppercase;border-bottom:1px solid #e0e0e0;padding-bottom:6px;margin-bottom:12px">Certification Countdown</div>
+        ${certRows}
+      </div>` : ''}
 
-    ${certRows ? `<div class="print-section">
-      <div class="print-section-title">Certification Countdown</div>
-      ${certRows}
-    </div>` : ''}
+      <div style="border-top:1px solid #e0e0e0;padding-top:10px;margin-top:20px;display:flex;justify-content:space-between;font-family:Space Mono,monospace;font-size:9px;color:#aaa">
+        <span>CISO Career Tracker · corvus-one.github.io/ciso-career-tracker</span>
+        <span>Generated ${dateStr}</span>
+      </div>`;
 
-    <div class="print-footer">
-      <span>CISO Career Tracker · corvus-one.github.io/ciso-career-tracker</span>
-      <span>Generated ${dateStr}</span>
-    </div>`;
+    setProgress(35, 'Rendering report...');
+    await new Promise(r => setTimeout(r, 200));
 
-  // iOS Safari warning — window.print() opens share sheet not PDF dialog
-  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  if(isIos) {
-    const proceed = confirm('On iPhone/iPad: tap Share → Print after this dialog opens, then pinch-zoom to save as PDF. Continue?');
-    if(!proceed) return;
+    setProgress(55, 'Capturing to canvas...');
+    const canvas = await html2canvas(printEl, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      width: 794,
+    });
+
+    setProgress(80, 'Building PDF...');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const imgData = canvas.toDataURL('image/png');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    // Handle multi-page if content is long
+    let position = 0;
+    let remainingHeight = pdfHeight;
+    let firstPage = true;
+    while(remainingHeight > 0) {
+      if(!firstPage) pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, -position, pdfWidth, pdfHeight);
+      position += pageHeight;
+      remainingHeight -= pageHeight;
+      firstPage = false;
+    }
+
+    setProgress(95, 'Saving PDF...');
+    pdf.save(`CISO_Tracker_Report_${fileDate}.pdf`);
+
+    // Clean up
+    printEl.style.display = 'none';
+    setProgress(100, 'Done!');
+    setTimeout(() => overlay.classList.remove('open'), 800);
+
+  } catch(err) {
+    console.error('PDF generation error:', err);
+    overlay.classList.remove('open');
+    // Fallback to print dialog if jsPDF fails
+    alert('PDF generation failed. Opening print dialog as fallback.');
+    window.print();
   }
-  // Trigger print dialog
-  setTimeout(() => window.print(), 100);
 }
 
 // ===== V05 TASK 2 CHANGELOG =====
