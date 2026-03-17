@@ -544,28 +544,49 @@
   .add-goal-form { display:flex; gap:8px; flex-wrap:wrap; padding:12px; background:rgba(124,106,247,0.04); border:1px dashed rgba(124,106,247,0.2); border-radius:10px; margin-bottom:14px; }
 
   /* SETUP SCREEN */
+  /* ── SETUP WIZARD ── */
   .setup-overlay { position:fixed; top:0; right:0; bottom:0; left:0; background:var(--bg); z-index:999; display:flex; align-items:center; justify-content:center; font-family:var(--sans); }
-  .setup-box { background:var(--surface); border:1px solid rgba(124,106,247,0.3); border-radius:20px; padding:40px; width:520px; max-width:90vw; box-shadow:var(--shadow-accent); }
-  .setup-logo { font-family:var(--mono); font-size:13px; color:var(--accent); letter-spacing:3px; margin-bottom:8px; }
-  .setup-version { font-family:var(--mono); font-size:13px; color:var(--muted); letter-spacing:2px; margin-bottom:28px; }
-  .setup-title { font-size:22px; font-weight:700; color:var(--text); margin-bottom:8px; }
-  .setup-sub { font-size:14px; color:var(--muted); margin-bottom:28px; line-height:1.6; }
-  .setup-steps { display:flex; flex-direction:column; gap:14px; margin-bottom:28px; }
-  .setup-step { display:flex; gap:14px; align-items:flex-start; padding:14px; background:var(--surface2); border-radius:12px; border:1px solid var(--border); }
-  .setup-step-num { font-family:var(--mono); font-size:13px; color:var(--accent); background:rgba(124,106,247,0.1); border:1px solid rgba(124,106,247,0.2); border-radius:6px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:700; }
+  .setup-box { background:var(--surface); border:1px solid rgba(124,106,247,0.3); border-radius:20px; width:560px; max-width:92vw; max-height:92vh; overflow:hidden; display:flex; flex-direction:column; box-shadow:var(--shadow-accent); }
+  .setup-header { padding:28px 36px 0; flex-shrink:0; }
+  .setup-logo { font-family:var(--mono); font-size:13px; color:var(--accent); letter-spacing:3px; margin-bottom:4px; }
+  .setup-version { font-family:var(--mono); font-size:13px; color:var(--muted); letter-spacing:2px; margin-bottom:20px; }
+  .setup-progress { display:flex; gap:6px; margin-bottom:0; }
+  .setup-progress-dot { flex:1; height:3px; border-radius:2px; background:var(--border); transition:background 0.3s; }
+  .setup-progress-dot.active { background:var(--accent); }
+  .setup-progress-dot.done { background:var(--accent3); }
+  .setup-content { flex:1; overflow-y:auto; padding:24px 36px 0; -webkit-overflow-scrolling:touch; }
+  .setup-step-icon { font-size:40px; margin-bottom:14px; display:block; }
+  .setup-step-counter { font-family:var(--mono); font-size:13px; color:var(--muted); letter-spacing:2px; margin-bottom:10px; }
+  .setup-step-title { font-size:22px; font-weight:700; color:var(--text); margin-bottom:8px; line-height:1.3; }
+  .setup-sub { font-size:14px; color:var(--muted); line-height:1.6; margin-bottom:22px; }
+  .setup-field { margin-bottom:16px; }
+  .setup-field-label { font-family:var(--mono); font-size:13px; color:var(--muted); letter-spacing:2px; margin-bottom:6px; display:block; }
+  .setup-input { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; color:var(--text); font-family:var(--sans); font-size:14px; outline:none; transition:border-color 0.2s; }
+  .setup-input:focus { border-color:var(--accent); }
+  .setup-input::placeholder { color:var(--muted); }
+  .setup-input-label { font-family:var(--mono); font-size:13px; color:var(--muted); letter-spacing:2px; margin-bottom:8px; display:block; }
+  .setup-select { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; color:var(--text); font-family:var(--sans); font-size:14px; outline:none; cursor:pointer; transition:border-color 0.2s; }
+  .setup-select:focus { border-color:var(--accent); }
+  .setup-cert-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:4px; }
+  .setup-cert-btn { padding:10px 14px; border-radius:10px; border:1.5px solid var(--border); background:transparent; color:var(--muted); font-family:var(--mono); font-size:13px; cursor:pointer; transition:all 0.2s; text-align:left; }
+  .setup-cert-btn.selected { border-color:var(--accent); background:rgba(124,106,247,0.1); color:var(--accent); }
+  .setup-steps { display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
+  .setup-step-item { display:flex; align-items:flex-start; gap:12px; padding:10px 12px; background:var(--surface2); border-radius:10px; border:1px solid var(--border); }
+  .setup-step-num { width:22px; height:22px; border-radius:50%; background:rgba(124,106,247,0.15); color:var(--accent); font-family:var(--mono); font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
   .setup-step-text { font-size:13px; color:var(--text); line-height:1.5; }
   .setup-step-text a { color:var(--accent2); text-decoration:none; }
   .setup-step-text a:hover { text-decoration:underline; }
   .setup-step-text strong { color:var(--accent3); }
-  .setup-input-label { font-family:var(--mono); font-size:13px; color:var(--muted); letter-spacing:2px; margin-bottom:8px; }
-  .setup-input { width:100%; background:var(--surface2); border:1px solid rgba(124,106,247,0.3); border-radius:10px; padding:12px 16px; color:var(--text); font-family:var(--mono); font-size:13px; outline:none; transition:border-color 0.2s; margin-bottom:10px; }
-  .setup-input:focus { border-color:var(--accent); }
-  .setup-input::placeholder { color:var(--muted); }
-  .setup-error { font-size:13px; color:var(--red); margin-bottom:10px; display:none; }
-  .setup-btn { width:100%; padding:14px; border-radius:10px; background:var(--accent); border:none; color:white; font-family:var(--mono); font-size:13px; letter-spacing:2px; cursor:pointer; transition:all 0.2s; margin-bottom:14px; }
-  .setup-btn:hover { background:#6b5de0; }
+  .setup-error { display:none; color:var(--red); font-size:13px; margin-bottom:10px; font-family:var(--mono); }
   .setup-note { font-size:13px; color:var(--muted); text-align:center; line-height:1.5; }
   .setup-note span { color:var(--accent3); }
+  .setup-footer { padding:20px 36px 28px; flex-shrink:0; display:flex; flex-direction:column; gap:10px; }
+  .setup-btn { width:100%; padding:14px; border-radius:10px; background:var(--accent); border:none; color:white; font-family:var(--mono); font-size:13px; letter-spacing:2px; cursor:pointer; transition:all 0.2s; }
+  .setup-btn:hover { background:#6b5de0; }
+  .setup-btn-secondary { width:100%; padding:11px; border-radius:10px; background:transparent; border:1px solid var(--border); color:var(--muted); font-family:var(--mono); font-size:13px; letter-spacing:1px; cursor:pointer; transition:all 0.2s; }
+  .setup-btn-secondary:hover { border-color:var(--muted); color:var(--text); }
+  .setup-btn-skip { background:transparent; border:none; color:var(--accent4); font-family:var(--mono); font-size:13px; font-weight:700; letter-spacing:1px; cursor:pointer; text-align:center; width:100%; padding:6px; transition:opacity 0.2s; }
+  .setup-btn-skip:hover { opacity:0.7; }
 
   /* FILE UPLOAD IN CHAT */
   .ai-attach-btn { background:transparent; border:1px solid var(--border); border-radius:7px; color:var(--muted); font-size:14px; padding:6px 9px; cursor:pointer; transition:all 0.2s; flex-shrink:0; }
@@ -1236,23 +1257,20 @@
 </div>
 
 <!-- SETUP SCREEN -->
-<div class="setup-overlay" id="setupOverlay" onclick="if(event.target===this)skipSetup()">
+<div class="setup-overlay" id="setupOverlay">
   <div class="setup-box">
-    <div class="setup-logo">CAREER_TRACKER</div>
-    <div class="setup-version">KAIZEN v07.0 · FIRST TIME SETUP</div>
-    <div class="setup-title">Welcome! Let's activate your AI Coach. 🤖</div>
-    <div class="setup-sub">Your AI coach needs a free OpenRouter API key to work. This takes 2 minutes and your key is stored only on <strong>your device</strong> — never on any server.</div>
-    <div class="setup-steps">
-      <div class="setup-step"><div class="setup-step-num">1</div><div class="setup-step-text">Go to <a href="https://openrouter.ai" target="_blank">openrouter.ai</a> and create a free account</div></div>
-      <div class="setup-step"><div class="setup-step-num">2</div><div class="setup-step-text">Click your profile → <strong>Security</strong> → <strong>Create Key</strong> → copy it</div></div>
-      <div class="setup-step"><div class="setup-step-num">3</div><div class="setup-step-text">Paste your key below and click <strong>Activate</strong></div></div>
+    <!-- Header — always visible -->
+    <div class="setup-header">
+      <div class="setup-logo">CAREER_TRACKER</div>
+      <div class="setup-version">KAIZEN v07.0 · SETUP</div>
+      <div class="setup-progress" id="setupProgress"></div>
     </div>
-    <div class="setup-input-label">YOUR OPENROUTER API KEY</div>
-    <input class="setup-input" id="setupKeyInput" placeholder="sk-or-v1-..." type="password">
-    <div class="setup-error" id="setupError">⚠️ Please enter a valid OpenRouter key (starts with sk-or-v1-)</div>
-    <button class="setup-btn" onclick="activateKey()">ACTIVATE AI COACH →</button>
-    <button onclick="skipSetup()" style="width:100%;padding:12px;border-radius:10px;background:transparent;border:1px solid var(--border);color:var(--accent4);font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;margin-bottom:14px;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent4)';this.style.opacity='0.8'" onmouseout="this.style.borderColor='var(--border)';this.style.opacity='1'">SKIP — USE TRACKER WITHOUT AI COACH →</button>
-    <div class="setup-note"><span>🔒 Your key never leaves your device.</span> Saved in your browser only.<br>Activate anytime via ⚙️ key in the sidebar.</div>
+
+    <!-- Step content — swaps per step -->
+    <div class="setup-content" id="setupContent"></div>
+
+    <!-- Footer buttons — swaps per step -->
+    <div class="setup-footer" id="setupFooter"></div>
   </div>
 </div>
 
@@ -2684,21 +2702,253 @@ function loadRoadmap() {
   } catch(e){}
 }
 
-// ===== SETUP SCREEN =====
-function checkSetup() { const key = localStorage.getItem('or_api_key'); if(key) document.getElementById('setupOverlay').style.display = 'none'; }
+// ===== SETUP WIZARD =====
+let wizardStep = 1;
+const WIZARD_TOTAL = 5;
+let wizardData = { name:'', role:'', timeline:'', certs:[], apiKey:'' };
+
+const WIZARD_STEPS = {
+  1: {
+    icon: '🛡️',
+    counter: 'STEP 1 OF 5',
+    title: "Welcome to your CISO Career Tracker",
+    sub: "This is your personal command center for reaching your CISO goal. Let's personalize it for you — takes about 2 minutes.",
+    render: () => `
+      <div class="setup-field">
+        <label class="setup-field-label">WHAT SHOULD WE CALL YOU?</label>
+        <input class="setup-input" id="wiz-name" placeholder="Your first name..." value="${wizardData.name}">
+      </div>
+      <div class="setup-field">
+        <label class="setup-field-label">CURRENT ROLE</label>
+        <input class="setup-input" id="wiz-role" placeholder="e.g. Security Manager, Security Engineer..." value="${wizardData.role}">
+      </div>`,
+    next: () => {
+      wizardData.name = document.getElementById('wiz-name').value.trim();
+      wizardData.role = document.getElementById('wiz-role').value.trim();
+      return true;
+    }
+  },
+  2: {
+    icon: '🎯',
+    counter: 'STEP 2 OF 5',
+    title: "Set your CISO target",
+    sub: "When are you aiming to land your first CISO or equivalent senior security leadership role?",
+    render: () => `
+      <div class="setup-field">
+        <label class="setup-field-label">TARGET TIMELINE</label>
+        <select class="setup-select" id="wiz-timeline">
+          <option value="" ${!wizardData.timeline?'selected':''}>Select your timeline...</option>
+          <option value="6 months" ${wizardData.timeline==='6 months'?'selected':''}>Within 6 months</option>
+          <option value="12 months" ${wizardData.timeline==='12 months'?'selected':''}>Within 12 months</option>
+          <option value="18 months" ${wizardData.timeline==='18 months'?'selected':''}>Within 18 months</option>
+          <option value="24 months" ${wizardData.timeline==='24 months'?'selected':''}>Within 24 months</option>
+          <option value="3+ years" ${wizardData.timeline==='3+ years'?'selected':''}>3+ years</option>
+          <option value="Exploring" ${wizardData.timeline==='Exploring'?'selected':''}>Still exploring</option>
+        </select>
+      </div>`,
+    next: () => {
+      wizardData.timeline = document.getElementById('wiz-timeline').value;
+      return true;
+    }
+  },
+  3: {
+    icon: '📜',
+    counter: 'STEP 3 OF 5',
+    title: "Certifications you're pursuing",
+    sub: "Select all that apply — we'll pre-fill your cert countdown timer so you never lose track.",
+    render: () => `
+      <div class="setup-cert-grid">
+        ${['CISM','CISSP','CCSP','CISA','Security+','CRISC','CGEIT','Custom'].map(c => `
+          <button class="setup-cert-btn ${wizardData.certs.includes(c)?'selected':''}"
+            onclick="toggleWizCert(this,'${c}')">${c}</button>`).join('')}
+      </div>
+      <div style="font-size:13px;color:var(--muted);margin-top:8px">You can update dates anytime in the sidebar.</div>`,
+    next: () => true
+  },
+  4: {
+    icon: '🤖',
+    counter: 'STEP 4 OF 5',
+    title: "Activate your AI Coach",
+    sub: "Your AI coach gives CISO-specific advice, answers security questions, and helps you prepare for interviews. It needs a free OpenRouter API key — stored only on your device.",
+    render: () => `
+      <div class="setup-steps">
+        <div class="setup-step-item"><div class="setup-step-num">1</div><div class="setup-step-text">Go to <a href="https://openrouter.ai" target="_blank">openrouter.ai</a> and create a free account</div></div>
+        <div class="setup-step-item"><div class="setup-step-num">2</div><div class="setup-step-text">Click your profile → <strong>API Keys</strong> → <strong>Create Key</strong> → copy it</div></div>
+        <div class="setup-step-item"><div class="setup-step-num">3</div><div class="setup-step-text">Paste below and click <strong>Activate</strong></div></div>
+      </div>
+      <label class="setup-input-label">YOUR OPENROUTER API KEY</label>
+      <input class="setup-input" id="setupKeyInput" placeholder="sk-or-v1-..." type="password" value="${wizardData.apiKey}" style="margin-bottom:8px">
+      <div class="setup-error" id="setupError">⚠️ Please enter a valid OpenRouter key (starts with sk-or-v1-)</div>
+      <div class="setup-note"><span>🔒 Your key never leaves your device.</span> Stored in your browser only.</div>`,
+    next: () => true
+  },
+  5: {
+    icon: '🚀',
+    counter: 'STEP 5 OF 5',
+    title: () => `You're all set${wizardData.name ? ', ' + wizardData.name : ''}!`,
+    sub: () => `Your tracker is personalized and ready. ${wizardData.timeline ? 'Target: CISO in ' + wizardData.timeline + '.' : ''} Let's build the habits that get you there — one day at a time.`,
+    render: () => `
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:8px">
+        ${wizardData.name ? `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)"><span style="font-size:18px">👤</span><span style="font-size:13px;color:var(--text)">${wizardData.name} · ${wizardData.role||'Security Professional'}</span></div>` : ''}
+        ${wizardData.timeline ? `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)"><span style="font-size:18px">🎯</span><span style="font-size:13px;color:var(--text)">CISO target: ${wizardData.timeline}</span></div>` : ''}
+        ${wizardData.certs.length ? `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)"><span style="font-size:18px">📜</span><span style="font-size:13px;color:var(--text)">Certifications: ${wizardData.certs.join(', ')}</span></div>` : ''}
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)"><span style="font-size:18px">🤖</span><span style="font-size:13px;color:var(--text)">AI Coach: ${wizardData.apiKey ? '✅ Activated' : '⏭ Skipped — activate anytime via ⚙️'}</span></div>
+      </div>`,
+    next: () => true
+  }
+};
+
+function renderWizardStep() {
+  const step = WIZARD_STEPS[wizardStep];
+  const total = WIZARD_TOTAL;
+
+  // Progress dots
+  document.getElementById('setupProgress').innerHTML =
+    Array.from({length:total},(_,i) => `<div class="setup-progress-dot ${i+1<wizardStep?'done':i+1===wizardStep?'active':''}"></div>`).join('');
+
+  // Content
+  const title = typeof step.title === 'function' ? step.title() : step.title;
+  const sub = typeof step.sub === 'function' ? step.sub() : step.sub;
+  document.getElementById('setupContent').innerHTML = `
+    <span class="setup-step-icon">${step.icon}</span>
+    <div class="setup-step-counter">${step.counter}</div>
+    <div class="setup-step-title">${title}</div>
+    <div class="setup-sub">${sub}</div>
+    ${step.render()}`;
+
+  // Footer buttons
+  const isLast = wizardStep === total;
+  const isFirst = wizardStep === 1;
+  document.getElementById('setupFooter').innerHTML = `
+    <button class="setup-btn" onclick="wizardNext()">${isLast ? 'LAUNCH TRACKER 🚀' : 'CONTINUE →'}</button>
+    ${wizardStep === 4 ? `<button class="setup-btn-secondary" onclick="wizardSkipApi()">SKIP — USE WITHOUT AI COACH</button>` : ''}
+    ${!isFirst && wizardStep !== 4 ? `<button class="setup-btn-secondary" onclick="wizardBack()">← Back</button>` : ''}
+    ${isFirst ? `<button class="setup-btn-skip" onclick="skipSetup()">SKIP SETUP — GO STRAIGHT TO TRACKER</button>` : ''}`;
+}
+
+function toggleWizCert(btn, cert) {
+  btn.classList.toggle('selected');
+  if(wizardData.certs.includes(cert)) {
+    wizardData.certs = wizardData.certs.filter(c => c !== cert);
+  } else {
+    wizardData.certs.push(cert);
+  }
+}
+
+function wizardNext() {
+  const step = WIZARD_STEPS[wizardStep];
+
+  // Step 4 — handle API key
+  if(wizardStep === 4) {
+    const input = document.getElementById('setupKeyInput');
+    const key = input ? input.value.trim() : '';
+    if(key && !key.startsWith('sk-or-v1-')) {
+      document.getElementById('setupError').style.display = 'block';
+      return;
+    }
+    if(key) {
+      wizardData.apiKey = key;
+      try { localStorage.setItem('or_api_key', key); } catch(e){}
+    }
+  }
+
+  // Run step's next() validation
+  if(!step.next()) return;
+
+  if(wizardStep < WIZARD_TOTAL) {
+    wizardStep++;
+    renderWizardStep();
+  } else {
+    // Final step — save all data and launch
+    completeWizard();
+  }
+}
+
+function wizardBack() {
+  if(wizardStep > 1) { wizardStep--; renderWizardStep(); }
+}
+
+function wizardSkipApi() {
+  wizardStep++;
+  renderWizardStep();
+}
+
+function completeWizard() {
+  // Save user profile
+  try {
+    const profile = { name:wizardData.name, role:wizardData.role, timeline:wizardData.timeline, certs:wizardData.certs };
+    localStorage.setItem('user_profile_v30', JSON.stringify(profile));
+  } catch(e){}
+
+  // Pre-fill cert countdown if certs selected
+  if(wizardData.certs.length) {
+    wizardData.certs.forEach((cert, i) => {
+      if(i < certDates.length) certDates[i].name = cert;
+    });
+    saveCertDates();
+    renderCountdown();
+  }
+
+  // Personalize AI greeting
+  const greeting = wizardData.name
+    ? `👋 Welcome, ${wizardData.name}! I'm your AI career coach. ${wizardData.timeline ? 'CISO in ' + wizardData.timeline + ' — let\'s build that plan.' : 'Ask me anything about your CISO journey!'}`
+    : `👋 Welcome to KAIZEN v07.0! Ask me anything about your CISO journey.`;
+
+  document.getElementById('setupOverlay').style.display = 'none';
+  setTimeout(() => appendAiMessage('assistant', greeting), 600);
+
+  // Update header greeting if name provided
+  if(wizardData.name) {
+    const logo = document.querySelector('.logo');
+    if(logo) logo.title = `Welcome, ${wizardData.name}`;
+  }
+
+  showToast(`Welcome${wizardData.name ? ', ' + wizardData.name : ''}! Your tracker is ready. 🛡️`, 'success', 5000);
+  checkBadges();
+}
+
+function checkSetup() {
+  const key = localStorage.getItem('or_api_key');
+  const profile = localStorage.getItem('user_profile_v30');
+  // Hide setup if either API key or profile already exists
+  if(key || profile) {
+    document.getElementById('setupOverlay').style.display = 'none';
+    return;
+  }
+  // Show wizard
+  wizardStep = 1;
+  renderWizardStep();
+}
+
 function activateKey() {
-  const input = document.getElementById('setupKeyInput'); const key = input.value.trim(); const error = document.getElementById('setupError');
-  if(!key.startsWith('sk-or-v1-')) { error.style.display = 'block'; return; }
-  error.style.display = 'none';
+  const input = document.getElementById('setupKeyInput');
+  if(!input) return;
+  const key = input.value.trim();
+  const error = document.getElementById('setupError');
+  if(!key.startsWith('sk-or-v1-')) { if(error) error.style.display = 'block'; return; }
+  if(error) error.style.display = 'none';
   localStorage.setItem('or_api_key', key);
   document.getElementById('setupOverlay').style.display = 'none';
   setTimeout(() => appendAiMessage('assistant', '✅ API key activated! Ask me anything about your CISO journey!'), 500);
 }
+
 function skipSetup() {
+  // Save empty profile so wizard doesn't show again
+  try { localStorage.setItem('user_profile_v30', JSON.stringify({skipped:true})); } catch(e){}
   document.getElementById('setupOverlay').style.display = 'none';
   setTimeout(() => appendAiMessage('assistant', '👋 Welcome to KAIZEN v07.0! AI coach is inactive — click ⚙️ key anytime to activate it.'), 600);
 }
-function resetApiKey() { localStorage.removeItem('or_api_key'); document.getElementById('setupOverlay').style.display = 'flex'; }
+
+function resetApiKey() {
+  localStorage.removeItem('or_api_key');
+  localStorage.removeItem('user_profile_v30');
+  wizardStep = 1;
+  wizardData = { name:'', role:'', timeline:'', certs:[], apiKey:'' };
+  renderWizardStep();
+  document.getElementById('setupOverlay').style.display = 'flex';
+}
+
+
 
 // ===== INIT =====
 function init() {
@@ -3192,11 +3442,20 @@ init();
         <input class="mentor-input" id="mentorName" placeholder="e.g. Sarah (Mentor), John (Hiring Manager)..." oninput="regenerateDigest()">
       </div>
       <div class="digest-section">
-        <div class="digest-section-title">Your Formatted Digest</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="digest-section-title" style="margin-bottom:0">Your Formatted Digest</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn-sm" id="aiDebriefBtn" onclick="generateAiDebrief()" style="border-color:rgba(124,106,247,0.4);color:var(--accent);display:none">
+              <span class="icon"><i data-lucide="sparkles"></i></span> AI DEBRIEF
+            </button>
+            <button class="btn-sm" onclick="regenerateDigest()"><span class="icon"><i data-lucide="refresh-cw"></i></span> Regenerate</button>
+          </div>
+        </div>
         <div class="digest-output" id="digestOutput"></div>
+        <div id="aiDebriefOutput" style="display:none;margin-top:12px;padding:14px 16px;background:var(--surface2);border:1px solid rgba(124,106,247,0.2);border-radius:10px;font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap"></div>
         <div class="digest-actions">
-          <button class="digest-copy-btn" id="digestCopyBtn" onclick="copyDigest()">📋 COPY TO CLIPBOARD</button>
-          <button class="btn-sm" onclick="regenerateDigest()">↻ Regenerate</button>
+          <button class="digest-copy-btn" id="digestCopyBtn" onclick="copyDigest()"><span class="icon" style="margin-right:6px"><i data-lucide="clipboard"></i></span> COPY TO CLIPBOARD</button>
+          <button class="btn-sm" id="copyAiDebriefBtn" onclick="copyAiDebrief()" style="display:none;border-color:rgba(124,106,247,0.4);color:var(--accent)">COPY AI DEBRIEF</button>
         </div>
       </div>
     </div>
@@ -3333,7 +3592,132 @@ function renderCountdown(){
 // ===== WEEKLY WINS DIGEST =====
 function openDigest(){
   document.getElementById('digestOverlay').classList.add('open');
+  // Show AI debrief button only if API key exists
+  const hasKey = !!localStorage.getItem('or_api_key');
+  const aiBtn = document.getElementById('aiDebriefBtn');
+  if(aiBtn) aiBtn.style.display = hasKey ? 'flex' : 'none';
+  // Reset AI debrief output
+  const aiOut = document.getElementById('aiDebriefOutput');
+  const copyAiBtn = document.getElementById('copyAiDebriefBtn');
+  if(aiOut) aiOut.style.display = 'none';
+  if(copyAiBtn) copyAiBtn.style.display = 'none';
   buildDigest();
+}
+
+async function generateAiDebrief() {
+  const key = localStorage.getItem('or_api_key');
+  if(!key) { showToast('AI Coach not activated — add your key via ⚙️', 'warning'); return; }
+
+  const btn = document.getElementById('aiDebriefBtn');
+  const aiOut = document.getElementById('aiDebriefOutput');
+  const copyAiBtn = document.getElementById('copyAiDebriefBtn');
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="icon"><i data-lucide="loader"></i></span> Generating...';
+  initIcons();
+
+  // Build rich context from real data
+  const now = new Date();
+  const sow = new Date(now); sow.setDate(now.getDate()-((now.getDay()+6)%7)); sow.setHours(0,0,0,0);
+  const s = window._digestStats || {rate:0,daysActive:0,totalChecks:0,goalsOnTrack:0};
+  const mentor = document.getElementById('mentorName')?.value.trim();
+  const topGoals = goalsList.filter(g=>g.progress>0).sort((a,b)=>b.progress-a.progress).slice(0,3);
+  const certLines = certDates.filter(c=>c.date).map(c=>{
+    const exam = new Date(c.date+'T00:00:00');
+    const days = Math.ceil((exam-now)/86400000);
+    return days>0 ? `${c.name}: ${days} days remaining` : '';
+  }).filter(Boolean);
+  const recentJournal = journalEntries.slice(0,3).map(e=>e.text.substring(0,120)).join(' | ');
+  const activeHabits = HABITS.map(h=>h.name).join(', ');
+  const badges = Object.keys(unlockedBadges).length;
+  const profile = (() => { try { return JSON.parse(localStorage.getItem('user_profile_v30')||'{}'); } catch(e){ return {}; } })();
+
+  const prompt = `You are a senior CISO career coach writing a personalized weekly debrief for a cybersecurity professional pursuing a CISO role.
+
+USER PROFILE:
+- Name: ${profile.name || 'Not provided'}
+- Current Role: ${profile.role || 'Security Professional'}
+- Target Timeline: ${profile.timeline || 'Not specified'}
+
+THIS WEEK'S DATA:
+- Habit Completion Rate: ${s.rate}%
+- Active Days: ${s.daysActive}/7
+- Total Habits Completed: ${s.totalChecks}
+- Day Streak: ${streak} days
+- Active Habits: ${activeHabits || 'None set'}
+- Goals On Track (≥50%): ${s.goalsOnTrack}
+- Top Goals: ${topGoals.length ? topGoals.map(g=>`${g.text} (${g.progress}%)`).join(', ') : 'None yet'}
+- Cert Countdown: ${certLines.length ? certLines.join(', ') : 'No exam dates set'}
+- Journal Entries This Week: ${journalEntries.filter(e=>{try{return new Date(e.date)>=sow;}catch{return false;}}).length}
+- Recent Journal Notes: ${recentJournal || 'None'}
+- Milestone Badges Earned: ${badges} of 20
+${mentor ? `- Recipient: ${mentor}` : ''}
+
+Write a professional, motivating weekly debrief that:
+1. Opens with a personalized greeting ${mentor ? `addressed to ${mentor}` : ''}
+2. Highlights genuine wins from this week's data (be specific with numbers)
+3. Identifies one area needing attention based on the data
+4. Gives one concrete, actionable recommendation for next week
+5. Ends with a motivating CISO-focused closing line
+
+Tone: Professional, warm, direct. Like a great mentor who knows your data.
+Length: 3-4 paragraphs. No bullet points — flowing prose only.
+Do not fabricate data — only reference what's provided above.`;
+
+  try {
+    aiOut.style.display = 'block';
+    aiOut.textContent = '✦ Generating your personalized debrief...';
+
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${key}`,
+        'HTTP-Referer': 'https://corvus-one.github.io/ciso-career-tracker/',
+        'X-Title': 'CISO Career Tracker'
+      },
+      body: JSON.stringify({
+        model: 'openai/gpt-3.5-turbo',
+        messages: [{ role:'user', content: prompt }],
+        max_tokens: 600,
+        temperature: 0.7
+      })
+    });
+
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content?.trim();
+
+    if(text) {
+      aiOut.textContent = text;
+      copyAiBtn.style.display = 'inline-flex';
+      showToast('AI debrief generated!', 'success');
+    } else {
+      aiOut.textContent = '⚠️ Could not generate debrief. Check your API key and try again.';
+    }
+  } catch(err) {
+    aiOut.textContent = '⚠️ Connection error. Check your internet and try again.';
+    console.error('AI debrief error:', err);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<span class="icon"><i data-lucide="sparkles"></i></span> AI DEBRIEF';
+  initIcons();
+}
+
+function copyAiDebrief() {
+  const text = document.getElementById('aiDebriefOutput').textContent;
+  const btn = document.getElementById('copyAiDebriefBtn');
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ COPIED!';
+    showToast('AI debrief copied to clipboard', 'success');
+    setTimeout(() => { btn.textContent = 'COPY AI DEBRIEF'; }, 2500);
+  }).catch(() => {
+    const el = document.getElementById('aiDebriefOutput');
+    const r = document.createRange(); r.selectNode(el);
+    window.getSelection().removeAllRanges(); window.getSelection().addRange(r);
+    document.execCommand('copy'); window.getSelection().removeAllRanges();
+    showToast('AI debrief copied', 'success');
+  });
 }
 function buildDigest(){
   const now=new Date();
