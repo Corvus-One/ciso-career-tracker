@@ -1710,6 +1710,15 @@
           </div>
           <div class="idea-list" id="list-warehouse"></div>
         </div>
+
+        <!-- COMPLETED IDEAS -->
+        <div id="completedIdeasSection" style="display:none;margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="font-family:var(--mono);font-size:13px;color:var(--accent3);letter-spacing:2px">// COMPLETED — Shipped ✓</div>
+            <button class="idea-action-btn" onclick="clearCompletedIdeas()">Clear All</button>
+          </div>
+          <div class="idea-list" id="list-completed"></div>
+        </div>
       </div>
     </div>
 
@@ -2025,13 +2034,14 @@ function renderBadges() {
   grid.innerHTML = BADGES.map(b => {
     const unlocked = unlockedBadges[b.id];
     const isNew = unlocked?.isNew;
-    return `<div class="badge-item ${unlocked ? 'unlocked' : 'locked'}"
-      onclick="${unlocked ? `showBadgePopup('${b.id}')` : `showBadgePopup('${b.id}')`}"
-      title="${unlocked ? b.name + ' — Click for details' : 'Locked — ' + b.desc}">
-      ${isNew ? '<div class="badge-new"></div>' : ''}
-      <div class="badge-icon">${b.icon}</div>
-      <div class="badge-name">${b.name}</div>
-    </div>`;
+    const titleText = unlocked ? b.name + ' — Click for details' : 'Locked — ' + b.desc;
+    return '<div class="badge-item ' + (unlocked ? 'unlocked' : 'locked') + '"'
+      + ' onclick="showBadgePopup(\'' + b.id + '\')"'
+      + ' title="' + titleText.replace(/"/g,'&quot;') + '">'
+      + (isNew ? '<div class="badge-new"></div>' : '')
+      + '<div class="badge-icon">' + b.icon + '</div>'
+      + '<div class="badge-name">' + b.name + '</div>'
+      + '</div>';
   }).join('');
 
   // Clear "new" flag after rendering
@@ -3388,11 +3398,91 @@ function renderIdeas(){
       </div>`;
     }).join('');
   });
+
+  // Render completed section
+  const allDone = [...(ideas.ondeck||[]),...(ideas.parking||[]),...(ideas.warehouse||[])]
+    .filter(i => i.status === 'done');
+  // Also check dedicated completed zone
+  const completed = ideas.completed || [];
+  const allCompleted = [...completed, ...allDone.filter(d => !completed.find(c=>c.id===d.id))];
+
+  const completedSection = document.getElementById('completedIdeasSection');
+  const completedList = document.getElementById('list-completed');
+  if(completedSection && completedList) {
+    if(allCompleted.length) {
+      completedSection.style.display = 'block';
+      completedList.innerHTML = allCompleted.map(item => `
+        <div class="idea-item status-done" style="opacity:0.8">
+          <div class="idea-color-dot ${item.color||'green'}"></div>
+          <span class="idea-text" style="text-decoration:line-through;color:var(--muted)">${item.text}</span>
+          <span class="idea-status-badge done">✓ DONE</span>
+          <span class="idea-meta">${item.date||''}</span>
+          <div class="idea-actions">
+            <button class="idea-action-btn" onclick="restoreIdea(${item.id})" title="Move back to On Deck">↩ Restore</button>
+            <button class="idea-action-btn del" onclick="deleteCompletedIdea(${item.id})">✕</button>
+          </div>
+        </div>`).join('');
+    } else {
+      completedSection.style.display = 'none';
+    }
+  }
 }
-function addIdea(zone){const input=document.getElementById('input-'+zone);const text=input.value.trim();if(!text)return;ideas[zone].push({id:++idCounter,text,color:'green',date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),status:'none'});input.value='';save();renderIdeas();}
-function cycleIdeaColor(zone,id){const item=ideas[zone].find(i=>i.id===id);if(item){const c={red:'yellow',yellow:'green',green:'red'};item.color=c[item.color]||'red';save();renderIdeas();}}
-function moveIdea(from,to,id){const item=ideas[from].find(i=>i.id===id);if(!item)return;ideas[from]=ideas[from].filter(i=>i.id!==id);ideas[to].push(item);save();renderIdeas();}
-function deleteIdea(zone,id){ideas[zone]=ideas[zone].filter(i=>i.id!==id);save();renderIdeas();}
+
+function cycleIdeaStatus(id){
+  const item = ideas.ondeck?.find(i=>i.id===id);
+  if(!item) return;
+  const cycle = {none:'doing', doing:'done', done:'none', onhold:'none'};
+  const prev = item.status || 'none';
+  item.status = cycle[prev] || 'none';
+
+  // When marked done — move to completed zone after brief delay
+  if(item.status === 'done') {
+    save(); renderIdeas();
+    setTimeout(() => {
+      // Move to completed array
+      if(!ideas.completed) ideas.completed = [];
+      const idx = ideas.ondeck.findIndex(i=>i.id===id);
+      if(idx !== -1) {
+        const [moved] = ideas.ondeck.splice(idx, 1);
+        moved.completedDate = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+        ideas.completed.unshift(moved);
+        save(); renderIdeas();
+        showToast(`"${moved.text}" moved to Completed ✓`, 'success');
+      }
+    }, 800);
+    return;
+  }
+  save(); renderIdeas();
+}
+
+function restoreIdea(id) {
+  if(!ideas.completed) return;
+  const idx = ideas.completed.findIndex(i=>i.id===id);
+  if(idx === -1) return;
+  const [item] = ideas.completed.splice(idx, 1);
+  item.status = 'none';
+  if(!ideas.ondeck) ideas.ondeck = [];
+  ideas.ondeck.unshift(item);
+  save(); renderIdeas();
+  showToast(`"${item.text}" restored to On Deck`, 'info');
+}
+
+function deleteCompletedIdea(id) {
+  if(!ideas.completed) return;
+  ideas.completed = ideas.completed.filter(i=>i.id!==id);
+  save(); renderIdeas();
+}
+
+function clearCompletedIdeas() {
+  ideas.completed = [];
+  save(); renderIdeas();
+  showToast('Completed ideas cleared', 'info');
+}
+
+function addIdea(zone){const input=document.getElementById('input-'+zone);const text=input.value.trim();if(!text)return;if(!ideas[zone])ideas[zone]=[];ideas[zone].push({id:++idCounter,text,color:'green',date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),status:'none'});input.value='';save();renderIdeas();}
+function cycleIdeaColor(zone,id){const item=ideas[zone]?.find(i=>i.id===id);if(item){const c={red:'yellow',yellow:'green',green:'red'};item.color=c[item.color]||'red';save();renderIdeas();}}
+function moveIdea(from,to,id){const item=ideas[from]?.find(i=>i.id===id);if(!item)return;ideas[from]=ideas[from].filter(i=>i.id!==id);if(!ideas[to])ideas[to]=[];ideas[to].push(item);save();renderIdeas();}
+function deleteIdea(zone,id){ideas[zone]=ideas[zone]?.filter(i=>i.id!==id)||[];save();renderIdeas();}
 
 // ===== HEATMAP =====
 function renderHeatmap(){
