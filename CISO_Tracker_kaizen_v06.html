@@ -2635,7 +2635,7 @@ function interviewPaneNav(dir) {
 
 window._currentCatFilter = 'all';
 
-
+function saveRoadmap() {
   ROADMAP_EDITABLE.forEach((p,i) => {
     p.name = document.getElementById('rname_'+i).value;
     p.time = document.getElementById('rtime_'+i).value;
@@ -3788,12 +3788,20 @@ function dismissIosBanner() {
 }
 
 // ===== SERVICE WORKER REGISTRATION =====
-if('serviceWorker' in navigator && !window.location.hostname.includes('claudeusercontent.com')) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./CISO_Tracker_service-worker.js')
-      .then(reg => console.log('SW registered:', reg.scope))
-      .catch(err => console.log('SW registration failed:', err));
-  });
+// ===== SERVICE WORKER =====
+if('serviceWorker' in navigator) {
+  if(window.location.hostname.includes('claudeusercontent.com')) {
+    // Unregister any previously cached SW on Claude preview
+    navigator.serviceWorker.getRegistrations().then(regs => {
+      regs.forEach(reg => reg.unregister());
+    });
+  } else {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./CISO_Tracker_service-worker.js')
+        .then(reg => console.log('SW registered:', reg.scope))
+        .catch(err => console.log('SW registration failed:', err));
+    });
+  }
 }
 
 // ===== V05 CHANGELOG ENTRIES =====
