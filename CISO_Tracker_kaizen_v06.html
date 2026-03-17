@@ -303,6 +303,9 @@
   /* HABIT LIST */
   .habit-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); }
   .habit-row:last-child { border-bottom:none; }
+  .habit-link-btn { background:transparent; border:none; cursor:pointer; color:var(--muted); padding:2px 4px; border-radius:4px; transition:all 0.2s; flex-shrink:0; display:flex; align-items:center; }
+  .habit-link-btn:hover { color:var(--accent2); background:rgba(79,195,247,0.1); }
+  .habit-link-btn svg { width:13px; height:13px; stroke:currentColor; stroke-width:2; fill:none; }
   .habit-cat-tag { font-size:10px; font-family:var(--mono); padding:3px 8px; border-radius:20px; flex-shrink:0; }
   .habit-name { flex:1; font-size:14px; color:var(--text); }
   .habit-check { width:28px; height:28px; border-radius:7px; border:1.5px solid var(--border); background:transparent; cursor:pointer; transition:all 0.15s; font-size:12px; display:flex; align-items:center; justify-content:center; color:transparent; flex-shrink:0; }
@@ -1454,6 +1457,10 @@
             </div>
             <button class="btn-add" onclick="addHabit()">+ ADD</button>
           </div>
+          <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+            <span class="icon" style="color:var(--accent2)"><i data-lucide="link"></i></span>
+            <input class="fi" id="habitUrlInput" placeholder="Optional: link to resource, article, course..." style="flex:1;font-size:12px">
+          </div>
         </div>
         <div id="habitList"></div>
 
@@ -1784,10 +1791,10 @@ const QUOTES = [
 
 // ===== DATA =====
 let HABITS = [
-  {id:1,name:"Review security framework docs (30 min)",cat:"Technical",color:"var(--accent2)"},
-  {id:2,name:"Work on security application code",cat:"Technical",color:"var(--accent2)"},
-  {id:3,name:"Read CISO leadership article/book",cat:"Learning",color:"var(--accent4)"},
-  {id:4,name:"Update LinkedIn / professional network",cat:"Career",color:"var(--accent)"},
+  {id:1,name:"Review security framework docs (30 min)",cat:"Technical",color:"var(--accent2)",url:"https://www.nist.gov/cyberframework"},
+  {id:2,name:"Work on security application code",cat:"Technical",color:"var(--accent2)",url:"https://github.com"},
+  {id:3,name:"Read CISO leadership article/book",cat:"Learning",color:"var(--accent4)",url:"https://www.darkreading.com"},
+  {id:4,name:"Update LinkedIn / professional network",cat:"Career",color:"var(--accent)",url:"https://www.linkedin.com"},
   {id:5,name:"Exercise / movement break",cat:"Health",color:"var(--accent5)"},
   {id:6,name:"Review compliance standards notes",cat:"Learning",color:"var(--accent4)"},
   {id:7,name:"Reflect & journal (5 min)",cat:"Health",color:"var(--accent5)"},
@@ -1899,8 +1906,8 @@ const BADGES = [
   { id:'first_journal',  icon:'📓',  name:'Reflector',       desc:'Write your first journal entry',        check: () => journalEntries.length >= 1 },
   { id:'journal_10',     icon:'📚',  name:'Chronicler',      desc:'Write 10 journal entries',              check: () => journalEntries.length >= 10 },
   { id:'first_log',      icon:'📋',  name:'Logged In',       desc:'Save your first daily log',             check: () => streak >= 1 },
-  { id:'interview_50',   icon:'🎤',  name:'Half Ready',      desc:'Interview readiness reaches 50%',       check: () => { const q=window.QUESTIONS||[]; const avg=q.length?q.reduce((a,b)=>a+b.confidence,0)/q.length:0; return avg>=2.5; } },
-  { id:'interview_100',  icon:'🦁',  name:'CISO Ready',      desc:'Interview readiness reaches 100%',      check: () => { const q=window.QUESTIONS||[]; return q.length>0&&q.every(b=>b.confidence>=5); } },
+  { id:'interview_50',   icon:'🎤',  name:'Half Ready',      desc:'Interview readiness reaches 50%',       check: () => { const q=interviewData||[]; const avg=q.length?q.reduce((a,b)=>a+b.confidence,0)/q.length:0; return avg>=2.5; } },
+  { id:'interview_100',  icon:'🦁',  name:'CISO Ready',      desc:'Interview readiness reaches 100%',      check: () => { const q=interviewData||[]; return q.length>0&&q.every(b=>b.confidence>=5); } },
   { id:'cert_set',       icon:'📅',  name:'Exam Booked',     desc:'Set an exam date',                      check: () => certDates.some(c=>c.date) },
   { id:'roadmap_edit',   icon:'🗺️',  name:'Cartographer',    desc:'Customize your roadmap',                check: () => { try { return !!localStorage.getItem('roadmap_v30'); } catch(e){ return false; } } },
   { id:'ai_activated',   icon:'🤖',  name:'AI Powered',      desc:'Activate your AI coach',                check: () => !!localStorage.getItem('or_api_key') },
@@ -2565,7 +2572,7 @@ const INTERVIEW_TIPS = {
 
 function openInterviewPane(qid) {
   window._activePaneId = qid;
-  const q = QUESTIONS.find(x => x.id === qid);
+  const q = interviewData.find(x => x.id === qid);
   if(!q) return;
 
   // Update active card highlight in list
@@ -2600,7 +2607,7 @@ function openInterviewPane(qid) {
     tips.map(t => `<div class="interview-pane-tip">${t}</div>`).join('');
 
   // Counter
-  const allQ = QUESTIONS.filter(x => window._currentCatFilter === 'all' || x.level === window._currentCatFilter);
+  const allQ = interviewData.filter(x => window._currentCatFilter === 'all' || x.level === window._currentCatFilter);
   const idx = allQ.findIndex(x => x.id === qid);
   document.getElementById('interviewPaneCounter').textContent =
     `Question ${idx+1} of ${allQ.length}`;
@@ -2625,7 +2632,7 @@ function saveInterviewPaneNotes() {
 
 function interviewPaneNav(dir) {
   const cat = window._currentCatFilter || 'all';
-  const allQ = QUESTIONS.filter(x => cat === 'all' || x.level === cat);
+  const allQ = interviewData.filter(x => cat === 'all' || x.level === cat);
   const idx = allQ.findIndex(x => x.id === window._activePaneId);
   const nextIdx = idx + dir;
   if(nextIdx >= 0 && nextIdx < allQ.length) {
@@ -2794,10 +2801,20 @@ function renderHabits(){
   document.getElementById('habitList').innerHTML=HABITS.map(h=>`
     <div class="habit-row">
       <span class="habit-cat-tag" style="background:${h.color}22;color:${h.color}">${h.cat}</span>
-      <span class="habit-name">${h.name}</span>
+      <span class="habit-name" style="flex:1">${h.name}</span>
+      ${h.url ? `<button class="habit-link-btn" onclick="openHabitResource(${h.id})" title="Open resource: ${h.url}">
+        <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </button>` : ''}
       <div class="habit-check ${habitChecks[key][h.id]?'checked':''}" onclick="toggleHabit(${h.id})">${habitChecks[key][h.id]?'✓':''}</div>
     </div>`).join('');
   updateStats();
+}
+
+function openHabitResource(id) {
+  const h = HABITS.find(x => x.id === id);
+  if(!h || !h.url) return;
+  const url = h.url.startsWith('http') ? h.url : 'https://' + h.url;
+  window.open(url, '_blank', 'noopener,noreferrer');
 }
 function toggleHabit(id){
   const key=dateKey(new Date());
@@ -2821,8 +2838,10 @@ function toggleAddHabitWeekly(){const f=document.getElementById('addHabitWeeklyF
 function addHabit(){
   const text=document.getElementById('habitNameInput').value.trim(); if(!text)return;
   const cat=document.getElementById('habitCatInput').value;
-  HABITS.push({id:++idCounter,name:text,cat,color:CAT_COLORS[cat]||'var(--accent)'});
+  const url=document.getElementById('habitUrlInput').value.trim();
+  HABITS.push({id:++idCounter,name:text,cat,color:CAT_COLORS[cat]||'var(--accent)',url:url||''});
   document.getElementById('habitNameInput').value='';
+  document.getElementById('habitUrlInput').value='';
   save(); renderHabits(); renderWeekly();
   checkBadges();
   showToast(`Habit added — "${text}"`, 'success');
@@ -3411,10 +3430,11 @@ function filterInterviewCat(cat,btn){
   window._currentCatFilter=cat;
   document.querySelectorAll('.interview-cat-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
+  else document.querySelectorAll('.interview-cat-btn').forEach(b=>{ if(b.onclick?.toString().includes(`'${cat}'`)) b.classList.add('active'); });
   renderInterviewQuestions();
 }
 function renderInterviewQuestions(){
-  const filtered=currentInterviewCat==='all'?interviewData:interviewData.filter(q=>q.cat===currentInterviewCat);
+  const filtered=currentInterviewCat==='all'?interviewData:interviewData.filter(q=>q.level===currentInterviewCat);
   document.getElementById('interviewQuestions').innerHTML=filtered.map((q,idx)=>`
     <div class="interview-q-card ${window._activePaneId===q.id?'active':''}" style="animation-delay:${idx*0.04}s" onclick="openInterviewPane(${q.id})">
       <div class="interview-q-meta">
