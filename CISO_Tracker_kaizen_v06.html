@@ -733,11 +733,11 @@
 
   /* ── ONBOARDING TOUR ── */
   .tour-overlay { display:none; position:fixed; top:0; right:0; bottom:0; left:0; z-index:800; pointer-events:none; }
-  .tour-overlay.active { display:block; }
+  .tour-overlay.active { display:block; pointer-events:all; }
   .tour-backdrop { position:fixed; top:0; right:0; bottom:0; left:0; background:rgba(0,0,0,0); transition:background 0.4s; }
-  .tour-overlay.active .tour-backdrop { background:rgba(0,0,0,0.7); pointer-events:all; }
-  .tour-highlight { position:fixed; border-radius:10px; box-shadow:0 0 0 4px var(--accent), 0 0 0 9999px rgba(0,0,0,0.7); z-index:801; pointer-events:none; transition:all 0.4s cubic-bezier(0.34,1.2,0.64,1); }
-  .tour-card { position:fixed; z-index:802; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-xl); padding:22px 24px; width:min(340px,90vw); box-shadow:var(--shadow-lg); pointer-events:all; animation:modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+  .tour-overlay.active .tour-backdrop { background:rgba(0,0,0,0.75); pointer-events:all; }
+  .tour-highlight { position:fixed; border-radius:10px; box-shadow:0 0 0 4px var(--accent), 0 0 0 9999px rgba(0,0,0,0.75); z-index:801; pointer-events:none; transition:all 0.4s cubic-bezier(0.34,1.2,0.64,1); display:none; }
+  .tour-card { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:802; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-xl); padding:24px 26px; width:min(380px,92vw); box-shadow:var(--shadow-lg); pointer-events:all; transition:top 0.35s cubic-bezier(0.34,1.2,0.64,1), left 0.35s cubic-bezier(0.34,1.2,0.64,1); }
   .tour-step-badge { font-family:var(--mono); font-size:10px; color:var(--accent); letter-spacing:2px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; }
   .tour-step-dots { display:flex; gap:5px; }
   .tour-dot { width:6px; height:6px; border-radius:50%; background:var(--border); transition:background 0.2s; }
@@ -2032,7 +2032,7 @@ function startTour() {
   document.getElementById('tourOverlay').classList.add('active');
   // Fade out quote banner during tour
   const banner = document.querySelector('.quote-banner');
-  if(banner) banner.style.cssText = 'opacity:0;pointer-events:none;transition:opacity 0.4s;';
+  if(banner) { banner.style.opacity = '0'; banner.style.transition = 'opacity 0.4s'; banner.style.pointerEvents = 'none'; }
   renderTourStep();
 }
 
@@ -2042,7 +2042,7 @@ function skipTour() {
   document.getElementById('tourHighlight').style.cssText = '';
   // Restore quote banner
   const banner = document.querySelector('.quote-banner');
-  if(banner) banner.style.cssText = 'opacity:1;pointer-events:all;transition:opacity 0.4s;';
+  if(banner) { banner.style.opacity = '1'; banner.style.pointerEvents = 'all'; }
   try { localStorage.setItem('tour_completed_v30', '1'); } catch(e){}
   // Switch back to daily view if we changed it
   const dailyBtn = document.querySelector('.nav-pills .nav-btn');
@@ -2103,45 +2103,70 @@ function renderTourStep() {
   }
 }
 
+function centerTourCard() {
+  const card = document.getElementById('tourCard');
+  const highlight = document.getElementById('tourHighlight');
+  highlight.style.display = 'none';
+  // True center of viewport
+  const cardW = Math.min(380, window.innerWidth * 0.92);
+  const cardH = 260;
+  card.style.top = '50%';
+  card.style.left = '50%';
+  card.style.transform = 'translate(-50%, -50%)';
+  card.style.right = 'auto';
+  card.style.bottom = 'auto';
+}
+
 function positionTour(selector, position) {
   const el = document.querySelector(selector);
   const highlight = document.getElementById('tourHighlight');
   const card = document.getElementById('tourCard');
-  if(!el) { centerTourCard(); highlight.style.cssText = 'display:none'; return; }
+  card.style.transform = '';
+
+  if(!el) { centerTourCard(); return; }
 
   const rect = el.getBoundingClientRect();
   const pad = 8;
-
-  // Position highlight
-  highlight.style.cssText = `
-    display:block;
-    top:${rect.top - pad}px;
-    left:${rect.left - pad}px;
-    width:${rect.width + pad*2}px;
-    height:${rect.height + pad*2}px;
-  `;
-
-  // Position card relative to highlight
-  const cardW = Math.min(340, window.innerWidth * 0.9);
-  const cardH = 220;
   const margin = 16;
-  let top, left;
+  const cardW = Math.min(380, window.innerWidth * 0.92);
+  const cardH = 280;
 
-  if(position === 'bottom' || rect.bottom + cardH + margin < window.innerHeight) {
+  // Show and position highlight
+  highlight.style.display = 'block';
+  highlight.style.top = (rect.top - pad) + 'px';
+  highlight.style.left = (rect.left - pad) + 'px';
+  highlight.style.width = (rect.width + pad * 2) + 'px';
+  highlight.style.height = (rect.height + pad * 2) + 'px';
+
+  // Determine best card position
+  let top, left;
+  const spaceBelow = window.innerHeight - rect.bottom - pad;
+  const spaceAbove = rect.top - pad;
+  const spaceRight = window.innerWidth - rect.right - pad;
+  const spaceLeft = rect.left - pad;
+
+  if(position === 'center') {
+    centerTourCard(); return;
+  } else if(position === 'bottom' && spaceBelow >= cardH + margin) {
     top = rect.bottom + pad + margin;
     left = Math.max(margin, Math.min(rect.left, window.innerWidth - cardW - margin));
-  } else if(position === 'top' || rect.top - cardH - margin > 0) {
+  } else if(position === 'top' && spaceAbove >= cardH + margin) {
     top = rect.top - pad - cardH - margin;
     left = Math.max(margin, Math.min(rect.left, window.innerWidth - cardW - margin));
-  } else if(position === 'right' && rect.right + cardW + margin < window.innerWidth) {
-    top = Math.max(margin, rect.top);
+  } else if(position === 'right' && spaceRight >= cardW + margin) {
+    top = Math.max(margin, Math.min(rect.top, window.innerHeight - cardH - margin));
     left = rect.right + pad + margin;
+  } else if(spaceLeft >= cardW + margin) {
+    top = Math.max(margin, Math.min(rect.top, window.innerHeight - cardH - margin));
+    left = rect.left - pad - cardW - margin;
+  } else if(spaceBelow >= cardH + margin) {
+    top = rect.bottom + pad + margin;
+    left = Math.max(margin, Math.min(rect.left, window.innerWidth - cardW - margin));
   } else {
-    top = Math.max(margin, rect.top);
-    left = Math.max(margin, rect.left - cardW - pad - margin);
+    centerTourCard(); return;
   }
 
-  // Keep within viewport
+  // Clamp within viewport
   top = Math.max(margin, Math.min(top, window.innerHeight - cardH - margin));
   left = Math.max(margin, Math.min(left, window.innerWidth - cardW - margin));
 
@@ -2149,16 +2174,6 @@ function positionTour(selector, position) {
   card.style.left = left + 'px';
   card.style.right = 'auto';
   card.style.bottom = 'auto';
-}
-
-function centerTourCard() {
-  const card = document.getElementById('tourCard');
-  card.style.top = '50%';
-  card.style.left = '50%';
-  card.style.right = 'auto';
-  card.style.bottom = 'auto';
-  card.style.transform = 'translate(-50%, -50%)';
-  setTimeout(() => card.style.transform = '', 10);
 }
 
 function checkTour() {
