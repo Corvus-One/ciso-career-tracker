@@ -58,7 +58,7 @@
     --mono: 'Space Mono', monospace;
     --sans: 'DM Sans', sans-serif;
     --base: 16px;
-    --sidebar-width: 300px;
+    --sidebar-width: 340px;
     /* Semantic tokens */
     --header-bg: rgba(18,21,28,0.97);
     --overlay-bg: rgba(0,0,0,0.78);
@@ -812,7 +812,7 @@
   .ios-banner-step { display:flex; align-items:center; gap:4px; }
 
   /* ── SIDEBAR RESIZE HANDLE ── */
-  .sidebar-resize { width:5px; cursor:col-resize; background:transparent; position:relative; flex-shrink:0; transition:background 0.2s; z-index:10; }
+  .sidebar-resize { width:5px; cursor:col-resize; background:transparent; position:relative; flex-shrink:0; transition:background 0.2s, width 0.3s; z-index:10; }
   .sidebar-resize:hover, .sidebar-resize.dragging { background:var(--accent); }
   .sidebar-resize::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:1px; height:40px; background:var(--border); border-radius:2px; }
   .sidebar-resize:hover::after, .sidebar-resize.dragging::after { background:white; }
@@ -2104,13 +2104,14 @@ function centerTourCard() {
   const card = document.getElementById('tourCard');
   const highlight = document.getElementById('tourHighlight');
   highlight.style.display = 'none';
-  card.style.top = '50%';
-  card.style.left = '50%';
+  // Pin over calendar area — never center
+  card.style.top = '72px';
+  card.style.left = '20px';
   card.style.right = 'auto';
   card.style.bottom = 'auto';
-  card.style.width = 'min(400px, calc(100vw - 48px))';
-  card.style.transform = 'translate(-50%, -50%)';
-  card.style.maxHeight = 'calc(100vh - 48px)';
+  card.style.transform = 'none';
+  card.style.width = 'min(320px, calc(100vw - 40px))';
+  card.style.maxHeight = 'calc(100vh - 100px)';
   card.style.overflowY = 'auto';
 }
 
