@@ -731,6 +731,20 @@
   .score-btn.selected-7,.score-btn.selected-8 { background:rgba(124,106,247,0.12); border-color:var(--accent); color:var(--accent); }
   .score-btn.selected-9,.score-btn.selected-10 { background:var(--green-soft); border-color:var(--green); color:var(--green); }
 
+  /* ── MILESTONE BADGES ── */
+  .badges-section { margin-top:4px; }
+  .badges-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(72px,1fr)); gap:10px; margin-top:10px; }
+  .badge-item { display:flex; flex-direction:column; align-items:center; gap:5px; padding:10px 6px; border-radius:12px; border:1px solid var(--border); background:var(--surface2); text-align:center; transition:all 0.2s; cursor:default; position:relative; }
+  .badge-item.unlocked { border-color:rgba(124,106,247,0.3); background:rgba(124,106,247,0.06); }
+  .badge-item.unlocked:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:var(--shadow-sm); }
+  .badge-item.locked { opacity:0.35; filter:grayscale(1); }
+  .badge-icon { font-size:26px; line-height:1; }
+  .badge-name { font-family:var(--mono); font-size:8px; color:var(--muted); letter-spacing:0.5px; line-height:1.3; }
+  .badge-item.unlocked .badge-name { color:var(--accent); }
+  .badge-new { position:absolute; top:-4px; right:-4px; width:12px; height:12px; background:var(--accent3); border-radius:50%; border:2px solid var(--surface); animation:badgePulse 1.5s infinite; }
+  @keyframes badgePulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.3)} }
+  .badge-progress { font-family:var(--mono); font-size:8px; color:var(--muted); }
+
   /* ── ONBOARDING TOUR ── */
   .tour-overlay { display:none; position:fixed; top:0; right:0; bottom:0; left:0; z-index:800; pointer-events:none; }
   .tour-overlay.active { display:block; pointer-events:all; }
@@ -1269,6 +1283,12 @@
           <div class="streak-lbl">📅 this week</div>
         </div>
       </div>
+    </div>
+
+    <!-- Milestone Badges -->
+    <div class="badges-section">
+      <div class="sec-label"><span class="icon" style="margin-right:4px"><i data-lucide="award"></i></span> Milestones</div>
+      <div class="badges-grid" id="badgesGrid"></div>
     </div>
 
     <!-- Roadmap -->
@@ -1823,7 +1843,93 @@ function initKeyboardNav() {
   document.body.appendChild(liveRegion);
 }
 
-// ===== CHECK-IN SCORE SYSTEM =====
+// ===== MILESTONE BADGE SYSTEM =====
+const BADGES = [
+  { id:'first_habit',    icon:'🌱', name:'First Step',      desc:'Add your first habit',                  check: () => HABITS.length >= 1 },
+  { id:'habit_5',        icon:'⚙️',  name:'Builder',         desc:'Add 5 habits',                          check: () => HABITS.length >= 5 },
+  { id:'streak_3',       icon:'🔥',  name:'On Fire',         desc:'3-day streak',                          check: () => streak >= 3 },
+  { id:'streak_7',       icon:'⚡',  name:'Week Warrior',    desc:'7-day streak',                          check: () => streak >= 7 },
+  { id:'streak_30',      icon:'💎',  name:'Diamond',         desc:'30-day streak',                         check: () => streak >= 30 },
+  { id:'first_goal',     icon:'🎯',  name:'Goal Setter',     desc:'Add your first goal',                   check: () => goalsList.length >= 1 },
+  { id:'goal_50',        icon:'📈',  name:'Halfway There',   desc:'A goal reaches 50%',                    check: () => goalsList.some(g => g.progress >= 50) },
+  { id:'goal_100',       icon:'🏆',  name:'Goal Crusher',    desc:'Complete a goal at 100%',               check: () => goalsList.some(g => g.progress >= 100) },
+  { id:'first_journal',  icon:'📓',  name:'Reflector',       desc:'Write your first journal entry',        check: () => journalEntries.length >= 1 },
+  { id:'journal_10',     icon:'📚',  name:'Chronicler',      desc:'Write 10 journal entries',              check: () => journalEntries.length >= 10 },
+  { id:'first_log',      icon:'📋',  name:'Logged In',       desc:'Save your first daily log',             check: () => streak >= 1 },
+  { id:'interview_50',   icon:'🎤',  name:'Half Ready',      desc:'Interview readiness reaches 50%',       check: () => { const q=window.QUESTIONS||[]; const avg=q.length?q.reduce((a,b)=>a+b.confidence,0)/q.length:0; return avg>=2.5; } },
+  { id:'interview_100',  icon:'🦁',  name:'CISO Ready',      desc:'Interview readiness reaches 100%',      check: () => { const q=window.QUESTIONS||[]; return q.length>0&&q.every(b=>b.confidence>=5); } },
+  { id:'cert_set',       icon:'📅',  name:'Exam Booked',     desc:'Set an exam date',                      check: () => certDates.some(c=>c.date) },
+  { id:'roadmap_edit',   icon:'🗺️',  name:'Cartographer',    desc:'Customize your roadmap',                check: () => { try { return !!localStorage.getItem('roadmap_v30'); } catch(e){ return false; } } },
+  { id:'ai_activated',   icon:'🤖',  name:'AI Powered',      desc:'Activate your AI coach',                check: () => !!localStorage.getItem('or_api_key') },
+  { id:'ideas_5',        icon:'💡',  name:'Idea Machine',    desc:'Add 5 ideas',                           check: () => ideas.length >= 5 },
+  { id:'score_10',       icon:'🌟',  name:'Perfect Day',     desc:'Log a check-in score of 10',            check: () => Object.values(checkinScores).some(s=>s>=10) },
+  { id:'score_streak',   icon:'🚀',  name:'On Track',        desc:'Log scores 5 days in a row',            check: () => {
+    const today = new Date(); let count = 0;
+    for(let i=0;i<30;i++){
+      const d=new Date(today); d.setDate(d.getDate()-i);
+      if(checkinScores[dateKey(d)]) count++; else break;
+    } return count>=5;
+  }},
+  { id:'tour_done',      icon:'🎓',  name:'Graduate',        desc:'Complete the onboarding tour',          check: () => { try { return !!localStorage.getItem('tour_completed_v30'); } catch(e){ return false; } } },
+];
+
+let unlockedBadges = {};
+
+function loadBadges() {
+  try { const s=localStorage.getItem('badges_v30'); if(s) unlockedBadges=JSON.parse(s); } catch(e){}
+}
+
+function saveBadges() {
+  try { localStorage.setItem('badges_v30', JSON.stringify(unlockedBadges)); } catch(e){}
+}
+
+function checkBadges() {
+  const newlyUnlocked = [];
+  BADGES.forEach(b => {
+    if(!unlockedBadges[b.id]) {
+      try {
+        if(b.check()) {
+          unlockedBadges[b.id] = { date: new Date().toISOString(), isNew: true };
+          newlyUnlocked.push(b);
+        }
+      } catch(e){}
+    }
+  });
+  if(newlyUnlocked.length) {
+    saveBadges();
+    renderBadges();
+    // Toast for each new badge
+    newlyUnlocked.forEach((b,i) => {
+      setTimeout(() => showToast(`${b.icon} Badge unlocked — ${b.name}!`, 'success', 4000), i * 600);
+    });
+  }
+}
+
+function renderBadges() {
+  const grid = document.getElementById('badgesGrid');
+  if(!grid) return;
+  grid.innerHTML = BADGES.map(b => {
+    const unlocked = unlockedBadges[b.id];
+    const isNew = unlocked?.isNew;
+    return `<div class="badge-item ${unlocked ? 'unlocked' : 'locked'}" title="${b.desc}">
+      ${isNew ? '<div class="badge-new"></div>' : ''}
+      <div class="badge-icon">${b.icon}</div>
+      <div class="badge-name">${b.name}</div>
+    </div>`;
+  }).join('');
+
+  // Clear "new" flag after rendering
+  let changed = false;
+  BADGES.forEach(b => {
+    if(unlockedBadges[b.id]?.isNew) {
+      unlockedBadges[b.id].isNew = false;
+      changed = true;
+    }
+  });
+  if(changed) saveBadges();
+}
+
+
 let checkinScores = {}; // { 'YYYY-MM-DD': score }
 let selectedScore = null;
 
@@ -2321,6 +2427,7 @@ function saveJournalEntry() {
   saveJournalToStorage();
   hideJournalForm();
   renderJournal();
+  checkBadges();
   showToast('Journal entry saved','success');
 }
 function deleteJournalEntry(id) {
@@ -2468,6 +2575,7 @@ function loadFromStorage() {
     const qn=localStorage.getItem('qn_v30'); if(qn) document.getElementById('quickNote').value=qn;
     document.getElementById('quickNote').addEventListener('input',function(){localStorage.setItem('qn_v30',this.value);});
     loadCheckinScores();
+    loadBadges();
   } catch(e){}
 }
 function save() {
@@ -2483,6 +2591,7 @@ function renderAll() {
   renderCalendar(); renderHabits(); renderPriorities(); renderRoadmap();
   renderWeekly(); renderGoals(); renderHeatmap(); renderQuarterly(); renderIdeas();
   renderJournal(); updateStats(); renderCheckinChart();
+  renderBadges(); checkBadges();
   initIcons();
   setTimeout(initTooltips, 200);
 }
@@ -2589,6 +2698,7 @@ function addHabit(){
   HABITS.push({id:++idCounter,name:text,cat,color:CAT_COLORS[cat]||'var(--accent)'});
   document.getElementById('habitNameInput').value='';
   save(); renderHabits(); renderWeekly();
+  checkBadges();
   showToast(`Habit added — "${text}"`, 'success');
 }
 function addHabitFromWeekly(){
@@ -2771,6 +2881,7 @@ function addGoal(){
   const text=document.getElementById('goalInput').value.trim(); if(!text)return;
   goalsList.push({id:Date.now(),text,cat:document.getElementById('goalCat').value,color:document.getElementById('goalColor').value,timeline:document.getElementById('goalTimeline').value,progress:0});
   document.getElementById('goalInput').value=''; save(); renderGoals();
+  checkBadges();
   showToast('Goal added successfully','success');
 }
 function adjustProgress(id,delta){const g=goalsList.find(g=>g.id===id);if(g){g.progress=Math.max(0,Math.min(100,g.progress+delta));save();renderGoals();}}
@@ -2839,7 +2950,6 @@ function renderQuarterly(){
 function selectMood(btn){document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');}
 function saveLog(){
   document.getElementById('modalOverlay').classList.remove('open');
-  // Save check-in score if selected
   if(selectedScore !== null) {
     const todayKey = dateKey(new Date());
     checkinScores[todayKey] = selectedScore;
@@ -2849,6 +2959,7 @@ function saveLog(){
   streak++;
   document.getElementById('streakNum').textContent=streak;
   renderHeatmap();renderQuarterly();
+  checkBadges();
   showToast('Daily log saved — streak updated! 🔥','success');
 }
 
