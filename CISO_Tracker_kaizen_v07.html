@@ -833,7 +833,7 @@
   @keyframes badgePulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.3)} }
 
   /* Badge detail popup */
-  .badge-popup-overlay { display:none; position:fixed; top:0; right:0; bottom:0; left:0; background:rgba(0,0,0,0.6); z-index:500; align-items:center; justify-content:center; }
+  .badge-popup-overlay { display:none; position:fixed; top:0; right:0; bottom:0; left:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(4px); z-index:850; align-items:center; justify-content:center; }
   .badge-popup-overlay.open { display:flex; }
   .badge-popup { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:28px 28px 24px; width:min(340px,88vw); text-align:center; box-shadow:var(--shadow-lg); animation:modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1); position:relative; }
   .badge-popup-icon { font-size:52px; margin-bottom:10px; display:block; }
@@ -1180,18 +1180,6 @@
 </style>
 </head>
 <body>
-
-<!-- BADGE DETAIL POPUP -->
-<div class="badge-popup-overlay" id="badgePopupOverlay" onclick="if(event.target===this)closeBadgePopup()">
-  <div class="badge-popup" id="badgePopup">
-    <span class="badge-popup-icon" id="badgePopupIcon"></span>
-    <div class="badge-popup-name" id="badgePopupName"></div>
-    <div class="badge-popup-desc" id="badgePopupDesc"></div>
-    <div id="badgePopupHow"></div>
-    <div id="badgePopupDate"></div>
-    <button class="badge-popup-close" onclick="closeBadgePopup()">CLOSE</button>
-  </div>
-</div>
 
 <!-- TOAST CONTAINER -->
 <div class="toast-container" id="toastContainer"></div>
@@ -1711,11 +1699,11 @@
           <div class="idea-list" id="list-warehouse"></div>
         </div>
 
-        <!-- COMPLETED IDEAS -->
-        <div id="completedIdeasSection" style="display:none;margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <div style="font-family:var(--mono);font-size:13px;color:var(--accent3);letter-spacing:2px">// COMPLETED — Shipped ✓</div>
-            <button class="idea-action-btn" onclick="clearCompletedIdeas()">Clear All</button>
+        <!-- COMPLETED IDEAS — always below the ideas box -->
+        <div id="completedIdeasSection" style="display:none;margin-top:20px;border-top:2px solid var(--border);padding-top:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div style="font-family:var(--mono);font-size:13px;color:var(--accent3);letter-spacing:2px">✅ COMPLETED</div>
+            <div style="font-family:var(--mono);font-size:13px;color:var(--muted)" id="completedCount"></div>
           </div>
           <div class="idea-list" id="list-completed"></div>
         </div>
@@ -3399,27 +3387,24 @@ function renderIdeas(){
     }).join('');
   });
 
-  // Render completed section
-  const allDone = [...(ideas.ondeck||[]),...(ideas.parking||[]),...(ideas.warehouse||[])]
-    .filter(i => i.status === 'done');
-  // Also check dedicated completed zone
+  // Render completed section — items that have been marked Done
   const completed = ideas.completed || [];
-  const allCompleted = [...completed, ...allDone.filter(d => !completed.find(c=>c.id===d.id))];
-
   const completedSection = document.getElementById('completedIdeasSection');
   const completedList = document.getElementById('list-completed');
+  const completedCount = document.getElementById('completedCount');
+
   if(completedSection && completedList) {
-    if(allCompleted.length) {
+    if(completed.length) {
       completedSection.style.display = 'block';
-      completedList.innerHTML = allCompleted.map(item => `
-        <div class="idea-item status-done" style="opacity:0.8">
+      if(completedCount) completedCount.textContent = completed.length + ' item' + (completed.length!==1?'s':'') + ' completed';
+      completedList.innerHTML = completed.map(item => `
+        <div class="idea-item status-done" style="opacity:0.85">
           <div class="idea-color-dot ${item.color||'green'}"></div>
-          <span class="idea-text" style="text-decoration:line-through;color:var(--muted)">${item.text}</span>
-          <span class="idea-status-badge done">✓ DONE</span>
-          <span class="idea-meta">${item.date||''}</span>
+          <span class="idea-text" style="text-decoration:line-through;color:var(--muted);flex:1">${item.text}</span>
+          <span class="idea-status-badge done" style="flex-shrink:0">✓ DONE</span>
+          <span class="idea-meta" style="flex-shrink:0;color:var(--muted)">${item.completedDate||item.date||''}</span>
           <div class="idea-actions">
             <button class="idea-action-btn" onclick="restoreIdea(${item.id})" title="Move back to On Deck">↩ Restore</button>
-            <button class="idea-action-btn del" onclick="deleteCompletedIdea(${item.id})">✕</button>
           </div>
         </div>`).join('');
     } else {
@@ -3429,27 +3414,32 @@ function renderIdeas(){
 }
 
 function cycleIdeaStatus(id){
-  const item = ideas.ondeck?.find(i=>i.id===id);
-  if(!item) return;
-  const cycle = {none:'doing', doing:'done', done:'none', onhold:'none'};
-  const prev = item.status || 'none';
-  item.status = cycle[prev] || 'none';
+  // Find the item in any zone
+  let foundZone = null;
+  let foundItem = null;
+  ['ondeck','parking','warehouse'].forEach(zone => {
+    const item = ideas[zone]?.find(i=>i.id===id);
+    if(item) { foundZone = zone; foundItem = item; }
+  });
+  if(!foundItem) return;
 
-  // When marked done — move to completed zone after brief delay
-  if(item.status === 'done') {
+  const cycle = {none:'doing', doing:'done', done:'none', onhold:'none'};
+  const prev = foundItem.status || 'none';
+  foundItem.status = cycle[prev] || 'none';
+
+  // When marked done — move to completed array
+  if(foundItem.status === 'done') {
     save(); renderIdeas();
     setTimeout(() => {
-      // Move to completed array
+      // Remove from source zone
+      ideas[foundZone] = ideas[foundZone].filter(i=>i.id!==id);
+      // Add to completed with date
       if(!ideas.completed) ideas.completed = [];
-      const idx = ideas.ondeck.findIndex(i=>i.id===id);
-      if(idx !== -1) {
-        const [moved] = ideas.ondeck.splice(idx, 1);
-        moved.completedDate = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-        ideas.completed.unshift(moved);
-        save(); renderIdeas();
-        showToast(`"${moved.text}" moved to Completed ✓`, 'success');
-      }
-    }, 800);
+      foundItem.completedDate = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      ideas.completed.unshift(foundItem);
+      save(); renderIdeas();
+      showToast(`"${foundItem.text}" completed! ✓`, 'success');
+    }, 600);
     return;
   }
   save(); renderIdeas();
@@ -3461,22 +3451,11 @@ function restoreIdea(id) {
   if(idx === -1) return;
   const [item] = ideas.completed.splice(idx, 1);
   item.status = 'none';
+  item.completedDate = null;
   if(!ideas.ondeck) ideas.ondeck = [];
   ideas.ondeck.unshift(item);
   save(); renderIdeas();
   showToast(`"${item.text}" restored to On Deck`, 'info');
-}
-
-function deleteCompletedIdea(id) {
-  if(!ideas.completed) return;
-  ideas.completed = ideas.completed.filter(i=>i.id!==id);
-  save(); renderIdeas();
-}
-
-function clearCompletedIdeas() {
-  ideas.completed = [];
-  save(); renderIdeas();
-  showToast('Completed ideas cleared', 'info');
 }
 
 function addIdea(zone){const input=document.getElementById('input-'+zone);const text=input.value.trim();if(!text)return;if(!ideas[zone])ideas[zone]=[];ideas[zone].push({id:++idCounter,text,color:'green',date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),status:'none'});input.value='';save();renderIdeas();}
@@ -4432,5 +4411,17 @@ const v07changes = [
 ];
 v07changes.forEach(c=>{if(!changeLog.find(e=>e.id===c.id))changeLog.push(c);});
 </script>
+<!-- BADGE DETAIL POPUP — at body level to avoid clipping -->
+<div class="badge-popup-overlay" id="badgePopupOverlay" onclick="if(event.target===this)closeBadgePopup()">
+  <div class="badge-popup" id="badgePopup">
+    <span class="badge-popup-icon" id="badgePopupIcon"></span>
+    <div class="badge-popup-name" id="badgePopupName"></div>
+    <div class="badge-popup-desc" id="badgePopupDesc"></div>
+    <div id="badgePopupHow"></div>
+    <div id="badgePopupDate"></div>
+    <button class="badge-popup-close" onclick="closeBadgePopup()">CLOSE</button>
+  </div>
+</div>
+
 </body>
 </html>
